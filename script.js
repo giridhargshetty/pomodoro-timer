@@ -37,14 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (pomodorosCompleted % 4 === 0) {
                             currentTime = longBreak;
                             statusDisplay.textContent = 'Long Break';
+                            statusDisplay.className = 'status long-break';
                         } else {
                             currentTime = shortBreak;
                             statusDisplay.textContent = 'Short Break';
+                            statusDisplay.className = 'status short-break';
                         }
                         isWorking = false;
                     } else {
                         currentTime = workTime;
                         statusDisplay.textContent = 'Work Time';
+                        statusDisplay.className = 'status work-time';
                         isWorking = true;
                     }
                     updateDisplay();
@@ -97,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function playSound() {
-        const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3');
+        const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-classic-alarm-995.mp3');
         audio.play().catch(e => console.log('Audio play failed:', e));
     }
 
@@ -106,5 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resetBtn.addEventListener('click', resetTimer);
     applyBtn.addEventListener('click', applySettings);
 
+    statusDisplay.className = 'status work-time';
     updateDisplay();
 });
