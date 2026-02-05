@@ -101,7 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function playSound() {
         const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-classic-alarm-995.mp3');
-        audio.play().catch(e => console.log('Audio play failed:', e));
+        audio.play().catch(e => {
+            console.log('Audio play failed:', e);
+            // Request permission for audio playback
+            document.addEventListener('click', function() {
+                audio.play().catch(e => console.log('Audio play failed after click:', e));
+            }, { once: true });
+        });
     }
 
     startBtn.addEventListener('click', startTimer);
