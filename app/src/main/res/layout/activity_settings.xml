@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_primary"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_md">
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             DEVICE CONNECTION
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_device"
+            android:textSize="12sp"
+            android:textColor="@color/orange_primary"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            android:paddingVertical="@dimen/spacing_sm" />
+
+        <androidx.cardview.widget.CardView
+            style="@style/WildTribe.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_md">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_saved_device"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvSavedDevice"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_device_saved"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="@dimen/spacing_md" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnReconnectDevice"
+                        style="@style/WildTribe.Button.Primary"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_reconnect"
+                        android:textSize="12sp"
+                        android:layout_marginEnd="@dimen/spacing_sm" />
+
+                    <Button
+                        android:id="@+id/btnForgetDevice"
+                        style="@style/WildTribe.Button.Secondary"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:text="@string/btn_forget_device"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             SPEED SETTINGS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_speed"
+            android:textSize="12sp"
+            android:textColor="@color/orange_primary"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:layout_marginTop="@dimen/spacing_md" />
+
+        <androidx.cardview.widget.CardView
+            style="@style/WildTribe.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_md">
+
+                <!-- Speed Unit Toggle -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_speed_unit"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="@dimen/spacing_sm" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleSpeedUnit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <Button
+                        android:id="@+id/btnKmh"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="km/h"
+                        android:textColor="@color/text_primary" />
+
+                    <Button
+                        android:id="@+id/btnMph"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="mph"
+                        android:textColor="@color/text_primary" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                <!-- Speed Warning Slider -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_speed_warning"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginTop="@dimen/spacing_md" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <SeekBar
+                        android:id="@+id/seekSpeedWarning"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="200"
+                        android:progress="100"
+                        android:progressTint="@color/orange_primary"
+                        android:thumbTint="@color/orange_primary" />
+
+                    <TextView
+                        android:id="@+id/tvSpeedWarningValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="100 km/h"
+                        android:textSize="14sp"
+                        android:textColor="@color/orange_primary"
+                        android:textStyle="bold"
+                        android:layout_marginStart="@dimen/spacing_sm"
+                        android:minWidth="72dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             NOTIFICATIONS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_notifications"
+            android:textSize="12sp"
+            android:textColor="@color/orange_primary"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:layout_marginTop="@dimen/spacing_md" />
+
+        <androidx.cardview.widget.CardView
+            style="@style/WildTribe.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/label_notifications"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary" />
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchNotifications"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true" />
+
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnGrantNotifAccess"
+                    style="@style/WildTribe.Button.Secondary"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="@string/btn_grant_notif_access"
+                    android:textSize="12sp"
+                    android:layout_marginTop="@dimen/spacing_sm" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TASKER & TIPS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_tasker"
+            android:textSize="12sp"
+            android:textColor="@color/orange_primary"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:layout_marginTop="@dimen/spacing_md" />
+
+        <androidx.cardview.widget.CardView
+            style="@style/WildTribe.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_md">
+
+                <Button
+                    android:id="@+id/btnTaskerGuide"
+                    style="@style/WildTribe.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="@string/btn_tasker_guide" />
+
+                <Button
+                    android:id="@+id/btnRiderTips"
+                    style="@style/WildTribe.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="@string/btn_rider_tips"
+                    android:layout_marginTop="@dimen/spacing_sm" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             FEEDBACK
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_feedback"
+            android:textSize="12sp"
+            android:textColor="@color/orange_primary"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:layout_marginTop="@dimen/spacing_md" />
+
+        <androidx.cardview.widget.CardView
+            style="@style/WildTribe.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_md">
+
+                <TextView
+                    android:id="@+id/tvRideCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rides completed: 0"
+                    android:textSize="13sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="@dimen/spacing_sm" />
+
+                <Button
+                    android:id="@+id/btnRateApp"
+                    style="@style/WildTribe.Button.Primary"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="@string/btn_rate_app" />
+
+                <Button
+                    android:id="@+id/btnSendFeedback"
+                    style="@style/WildTribe.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="@string/btn_send_feedback"
+                    android:layout_marginTop="@dimen/spacing_sm" />
+
+                <Button
+                    android:id="@+id/btnReportIssue"
+                    style="@style/WildTribe.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="@string/btn_report_issue"
+                    android:layout_marginTop="@dimen/spacing_sm" />
+
+                <Button
+                    android:id="@+id/btnExportLogs"
+                    style="@style/WildTribe.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="@string/btn_export_logs"
+                    android:layout_marginTop="@dimen/spacing_sm" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Bottom padding -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/spacing_xl" />
+
+    </LinearLayout>
+
+</ScrollView>

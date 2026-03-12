@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.WildTribeDrive" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/orange_primary</item>
+        <item name="colorPrimaryDark">@color/orange_dark</item>
+        <item name="colorAccent">@color/orange_primary</item>
+        <item name="android:windowBackground">@color/background_primary</item>
+        <item name="android:statusBarColor">@color/background_primary</item>
+        <item name="android:navigationBarColor">@color/background_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <!-- Splash screen theme (full screen, no title bar) -->
+    <style name="Theme.WildTribeDrive.Splash" parent="Theme.WildTribeDrive">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/black</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Dashboard – always dark for visibility while riding -->
+    <style name="Theme.WildTribeDrive.Dashboard" parent="Theme.WildTribeDrive">
+        <item name="android:windowBackground">@color/background_primary</item>
+        <item name="android:keepScreenOn">true</item>
+    </style>
+
+    <!-- Settings screen with ActionBar -->
+    <style name="Theme.WildTribeDrive.Settings" parent="Theme.MaterialComponents.DayNight">
+        <item name="colorPrimary">@color/orange_primary</item>
+        <item name="colorPrimaryDark">@color/orange_dark</item>
+        <item name="android:windowBackground">@color/background_primary</item>
+        <item name="android:statusBarColor">@color/background_secondary</item>
+        <item name="actionBarStyle">@style/WildTribe.ActionBar</item>
+        <item name="windowActionBar">true</item>
+        <item name="windowNoTitle">false</item>
+    </style>
+
+    <style name="WildTribe.ActionBar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="background">@color/background_secondary</item>
+        <item name="titleTextColor">@color/text_primary</item>
+        <item name="subtitleTextColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Card style for settings sections -->
+    <style name="WildTribe.Card" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/surface_card</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">2dp</item>
+    </style>
+
+    <!-- Large button style -->
+    <style name="WildTribe.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/orange_primary</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Secondary / outline button -->
+    <style name="WildTribe.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/orange_primary</item>
+        <item name="android:textColor">@color/orange_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- Navigation instruction text (large, bold, readable at speed) -->
+    <style name="WildTribe.Text.NavInstruction">
+        <item name="android:textSize">22sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.05</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <!-- Speed display (very large) -->
+    <style name="WildTribe.Text.Speed">
+        <item name="android:textSize">56sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+    </style>
+</resources>

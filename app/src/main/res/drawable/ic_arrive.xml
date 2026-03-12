@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation icon: Destination / Arrive -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Map pin / location marker -->
+    <path
+        android:fillColor="#FF6B00"
+        android:pathData="M50,5 C32,5 18,19 18,37 C18,55 50,95 50,95 C50,95 82,55 82,37 C82,19 68,5 50,5 Z" />
+
+    <!-- Inner circle (white) -->
+    <circle
+        android:fillColor="#0D0D0D"
+        android:cx="50"
+        android:cy="37"
+        android:r="12" />
+
+    <!-- Checkmark inside -->
+    <path
+        android:fillColor="#FF6B00"
+        android:strokeColor="#FF6B00"
+        android:strokeWidth="3"
+        android:pathData="M42,37 L47,43 L59,30" />
+
+</vector>
