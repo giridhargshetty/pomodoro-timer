@@ -33,6 +33,7 @@
     <color name="ble_connected">#00C896</color>
     <color name="ble_scanning">#4A9EFF</color>
     <color name="ble_disconnected">#FF3B30</color>
+    <color name="status_disconnected">#FF3B30</color>
 
     <!-- ─── Accessibility Status Colors ──────────────────────────────────── -->
     <color name="acc_active">#00C896</color>
