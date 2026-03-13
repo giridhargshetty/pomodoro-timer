@@ -52,6 +52,9 @@
 
     <!-- ═══ TEXT STYLES ═══════════════════════════════════════════════════════ -->
 
+    <!-- Base text style required for dot-notation child styles -->
+    <style name="TextStyle" />
+
     <!-- Garmin data label: ALL CAPS, small, tracked -->
     <style name="TextStyle.GarminLabel">
         <item name="android:textSize">10sp</item>
