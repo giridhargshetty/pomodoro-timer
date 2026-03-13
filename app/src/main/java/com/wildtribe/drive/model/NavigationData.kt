@@ -1,14 +1,17 @@
 package com.wildtribe.drive.model
 
+import com.wildtribe.drive.utils.DebugLogger
+
 /**
- * Parsed navigation state displayed on the dashboard.
+ * Parsed navigation state displayed on the Garmin dashboard.
  */
 data class NavigationData(
     val direction: NavDirection = NavDirection.NONE,
     val distanceText: String = "",
-    val instructionText: String = "Waiting for navigation…",
+    val instructionText: String = "WAITING FOR MAPS",
     val speed: Int = 0,
     val speedUnit: String = "km/h",
+    val speedLimit: Int? = null,
     val eta: String = "--:--",
     val distanceRemaining: String = "--",
     val tripDuration: String = "--",
@@ -19,19 +22,15 @@ data class NavigationData(
 }
 
 /**
- * Navigation arrow directions matching the MotoRound command set.
+ * Navigation arrow directions.
  */
 enum class NavDirection {
-    NONE,
-    STRAIGHT,
-    LEFT,
-    RIGHT,
-    UTURN,
-    ARRIVE
+    NONE, STRAIGHT, LEFT, RIGHT, UTURN, ARRIVE
 }
 
 /**
- * Parsed representation of incoming BLE/Tasker commands.
+ * Parsed representation of BLE/Tasker commands.
+ * FIX 4: Logs unrecognized commands and parse errors via DebugLogger.
  */
 sealed class NavCommand {
     data class TurnRight(val distance: String) : NavCommand()
@@ -47,35 +46,50 @@ sealed class NavCommand {
 
     companion object {
         /**
-         * Parse a raw UTF-8 command string into a typed [NavCommand].
+         * Parse raw command string. FIX 4: logs errors and unknowns.
          *
-         * Supported formats:
-         *  NAV:R:300m   NAV:L:1.2km   NAV:S:0   NAV:UT:   NAV:AR:
-         *  SPD:65        MSG:text      TRP:45km:1h23m:18:30   CLR
+         * Supported:
+         *  NAV:R:300m  NAV:L:1.2km  NAV:S:0  NAV:UT:  NAV:AR:
+         *  SPD:65       MSG:text     TRP:45km:1h23m:18:30   CLR
          */
         fun parse(raw: String): NavCommand {
-            val cmd = raw.trim()
-            return when {
-                cmd.startsWith("NAV:R:") -> TurnRight(cmd.removePrefix("NAV:R:"))
-                cmd.startsWith("NAV:L:") -> TurnLeft(cmd.removePrefix("NAV:L:"))
-                cmd.startsWith("NAV:S:")  -> GoStraight(cmd.removePrefix("NAV:S:"))
-                cmd.startsWith("NAV:UT") -> UTurn
-                cmd.startsWith("NAV:AR") -> Arrive
-                cmd.startsWith("SPD:") -> {
-                    val spd = cmd.removePrefix("SPD:").toIntOrNull() ?: 0
-                    SpeedUpdate(spd)
+            return try {
+                val cmd = raw.trim()
+                when {
+                    cmd.startsWith("NAV:R:") -> TurnRight(cmd.removePrefix("NAV:R:"))
+                    cmd.startsWith("NAV:L:") -> TurnLeft(cmd.removePrefix("NAV:L:"))
+                    cmd.startsWith("NAV:S:")  -> GoStraight(cmd.removePrefix("NAV:S:"))
+                    cmd.startsWith("NAV:UT") -> UTurn
+                    cmd.startsWith("NAV:AR") -> Arrive
+                    cmd.startsWith("SPD:") -> {
+                        val spd = cmd.removePrefix("SPD:").toIntOrNull()
+                        if (spd != null) SpeedUpdate(spd)
+                        else {
+                            // FIX 4
+                            DebugLogger.log("NAV_PARSE_ERROR", "Bad SPD value: '$cmd'")
+                            Unknown(cmd)
+                        }
+                    }
+                    cmd.startsWith("MSG:") -> Message(cmd.removePrefix("MSG:"))
+                    cmd.startsWith("TRP:") -> {
+                        val parts = cmd.removePrefix("TRP:").split(":")
+                        TripInfo(
+                            distance = parts.getOrElse(0) { "--" },
+                            duration = parts.getOrElse(1) { "--" },
+                            eta = parts.getOrElse(2) { "--:--" }
+                        )
+                    }
+                    cmd == "CLR" -> Clear
+                    else -> {
+                        // FIX 4: Log unrecognized commands
+                        DebugLogger.log("NAV_UNKNOWN", "Unrecognized command: '$cmd'")
+                        Unknown(cmd)
+                    }
                 }
-                cmd.startsWith("MSG:") -> Message(cmd.removePrefix("MSG:"))
-                cmd.startsWith("TRP:") -> {
-                    val parts = cmd.removePrefix("TRP:").split(":")
-                    TripInfo(
-                        distance = parts.getOrElse(0) { "--" },
-                        duration = parts.getOrElse(1) { "--" },
-                        eta = parts.getOrElse(2) { "--:--" }
-                    )
-                }
-                cmd == "CLR" -> Clear
-                else -> Unknown(cmd)
+            } catch (e: Exception) {
+                // FIX 4: Log parse exceptions
+                DebugLogger.log("NAV_PARSE_ERROR", "Failed to parse: '$raw' — ${e.message}")
+                Unknown(raw)
             }
         }
     }

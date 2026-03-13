@@ -7,28 +7,29 @@ import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelUuid
 import com.wildtribe.drive.model.BleDevice
 import com.wildtribe.drive.model.ConnectionState
-import com.wildtribe.drive.util.LogHelper
+import com.wildtribe.drive.utils.DebugLogger
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.nio.charset.StandardCharsets
 
 /**
- * Core BLE manager responsible for:
- *  - Scanning for nearby BLE devices
- *  - Connecting/disconnecting to MotoRound
- *  - Sending commands via GATT write
- *  - Auto-reconnect every 3 seconds on disconnect
+ * Core BLE manager for MotoRound ESP32-S3 communication.
  *
- * All public state is exposed as [StateFlow] for reactive UI binding.
+ * FIX 3: Exponential backoff reconnect (3s → 6s → 12s → ... → 60s max, 10 retries)
+ * FIX 6: GATT service discovery timeout (10s — force reconnect if discovery hangs)
+ *
+ * TEST: BLE connects to device named "MotoRound"
+ * TEST: Reconnect backoff: check logs show 3s, 6s, 12s, 24s delays
+ * TEST: GATT timeout triggers after 10s if discovery hangs
  */
 @SuppressLint("MissingPermission")
 class BleManager(private val context: Context) {
 
-    // ─── State Flows ──────────────────────────────────────────────────────────
+    // ── State Flows ────────────────────────────────────────────────────────
     private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
     val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
@@ -38,7 +39,7 @@ class BleManager(private val context: Context) {
     private val _connectedDeviceName = MutableStateFlow<String?>(null)
     val connectedDeviceName: StateFlow<String?> = _connectedDeviceName.asStateFlow()
 
-    // ─── Internals ────────────────────────────────────────────────────────────
+    // ── Internals ──────────────────────────────────────────────────────────
     private val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     private val bluetoothAdapter: BluetoothAdapter? get() = bluetoothManager.adapter
     private var bluetoothGatt: BluetoothGatt? = null
@@ -47,20 +48,24 @@ class BleManager(private val context: Context) {
     private var lastDeviceAddress: String? = null
     private var shouldAutoReconnect = true
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    // Deduplicated scan results
+    // FIX 3: Exponential backoff state
+    private var reconnectAttempts = 0
+
+    // FIX 6: GATT timeout job
+    private var discoveryTimeoutJob: Job? = null
+
     private val deviceMap = mutableMapOf<String, BleDevice>()
 
-    // ─── BLE Scanner ──────────────────────────────────────────────────────────
+    // ── Scan ───────────────────────────────────────────────────────────────
 
-    /** Start scanning for nearby BLE devices. Stops automatically after [BleConstants.SCAN_PERIOD_MS]. */
     fun startScan() {
         if (isScanning) return
         val scanner = bluetoothAdapter?.bluetoothLeScanner ?: run {
-            LogHelper.e("BleManager", "BLE scanner not available")
+            DebugLogger.e("BleManager", "BLE scanner not available")
             return
         }
-
         deviceMap.clear()
         _scannedDevices.value = emptyList()
         isScanning = true
@@ -71,15 +76,13 @@ class BleManager(private val context: Context) {
             .build()
 
         scanner.startScan(null, settings, scanCallback)
-        LogHelper.d("BleManager", "BLE scan started")
+        DebugLogger.log("BLE_SCAN", "Scan started")
 
-        // Auto-stop after timeout
         mainHandler.postDelayed({
             if (isScanning) stopScan()
         }, BleConstants.SCAN_PERIOD_MS)
     }
 
-    /** Stop any active BLE scan. */
     fun stopScan() {
         if (!isScanning) return
         bluetoothAdapter?.bluetoothLeScanner?.stopScan(scanCallback)
@@ -87,33 +90,29 @@ class BleManager(private val context: Context) {
         if (_connectionState.value == ConnectionState.SCANNING) {
             _connectionState.value = ConnectionState.DISCONNECTED
         }
-        LogHelper.d("BleManager", "BLE scan stopped")
+        DebugLogger.log("BLE_SCAN", "Scan stopped")
     }
 
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             val name = result.device.name ?: return
             val address = result.device.address
-            val rssi = result.rssi
-            val device = BleDevice(name = name, address = address, rssi = rssi)
+            val device = BleDevice(name = name, address = address, rssi = result.rssi)
             deviceMap[address] = device
-
-            // Sort: MotoRound devices first, then by signal strength
             _scannedDevices.value = deviceMap.values.sortedWith(
                 compareByDescending<BleDevice> { it.isMotoRound }.thenByDescending { it.rssi }
             )
         }
-
         override fun onScanFailed(errorCode: Int) {
-            LogHelper.e("BleManager", "Scan failed with error: $errorCode")
+            DebugLogger.e("BLE_SCAN", "Scan failed: $errorCode")
             isScanning = false
             _connectionState.value = ConnectionState.DISCONNECTED
         }
     }
 
-    // ─── Connection ───────────────────────────────────────────────────────────
+    // ── Connect / Disconnect ───────────────────────────────────────────────
 
-    /** Connect to a device by its MAC address. */
+    /** Connect to device by MAC address. */
     fun connect(address: String) {
         stopScan()
         val adapter = bluetoothAdapter ?: return
@@ -121,14 +120,16 @@ class BleManager(private val context: Context) {
         lastDeviceAddress = address
         shouldAutoReconnect = true
         _connectionState.value = ConnectionState.CONNECTING
-        LogHelper.d("BleManager", "Connecting to $address")
+        DebugLogger.log("BLE_CONN", "Connecting to $address")
         bluetoothGatt?.close()
         bluetoothGatt = device.connectGatt(context, false, gattCallback, BluetoothDevice.TRANSPORT_LE)
     }
 
-    /** Disconnect from current device and cancel auto-reconnect. */
+    /** Manual disconnect — cancels auto-reconnect. */
     fun disconnect() {
         shouldAutoReconnect = false
+        reconnectAttempts = 0
+        discoveryTimeoutJob?.cancel()
         mainHandler.removeCallbacksAndMessages(RECONNECT_TOKEN)
         bluetoothGatt?.disconnect()
         bluetoothGatt?.close()
@@ -136,26 +137,26 @@ class BleManager(private val context: Context) {
         targetCharacteristic = null
         _connectionState.value = ConnectionState.DISCONNECTED
         _connectedDeviceName.value = null
-        LogHelper.d("BleManager", "Disconnected (manual)")
+        DebugLogger.log("BLE_CONN", "Disconnected (manual)")
     }
 
-    /** Send a UTF-8 command string to the MotoRound device. */
+    /** Send a UTF-8 command string to MotoRound. Returns true on success. */
     fun sendCommand(command: String): Boolean {
         val gatt = bluetoothGatt
         val characteristic = targetCharacteristic
         if (gatt == null || characteristic == null) {
-            LogHelper.w("BleManager", "Cannot send – not connected")
+            DebugLogger.w("BLE_CMD", "Cannot send '$command' — not connected")
             return false
         }
-
         val bytes = command.toByteArray(StandardCharsets.UTF_8)
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val result = gatt.writeCharacteristic(
-                characteristic,
-                bytes,
+                characteristic, bytes,
                 BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             )
-            result == BluetoothStatusCodes.SUCCESS
+            (result == BluetoothStatusCodes.SUCCESS).also {
+                if (!it) DebugLogger.w("BLE_CMD", "Write failed for '$command': $result")
+            }
         } else {
             @Suppress("DEPRECATION")
             characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
@@ -166,23 +167,33 @@ class BleManager(private val context: Context) {
         }
     }
 
-    // ─── GATT Callback ────────────────────────────────────────────────────────
+    // ── GATT Callback ──────────────────────────────────────────────────────
 
     private val gattCallback = object : BluetoothGattCallback() {
 
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    LogHelper.d("BleManager", "GATT connected – discovering services")
+                    DebugLogger.log("BLE_GATT", "GATT connected — discovering services")
                     _connectionState.value = ConnectionState.CONNECTING
                     _connectedDeviceName.value = gatt.device?.name
+
+                    // FIX 6: Start 10-second service discovery timeout
+                    discoveryTimeoutJob?.cancel()
+                    discoveryTimeoutJob = scope.launch {
+                        delay(BleConstants.GATT_TIMEOUT_MS)
+                        DebugLogger.e("BLE_GATT", "Service discovery timed out — forcing reconnect")
+                        gatt.disconnect()
+                        scheduleReconnect()
+                    }
                     gatt.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
+                    discoveryTimeoutJob?.cancel()
                     targetCharacteristic = null
                     _connectedDeviceName.value = null
                     if (shouldAutoReconnect && lastDeviceAddress != null) {
-                        LogHelper.d("BleManager", "Disconnected – scheduling reconnect")
+                        DebugLogger.log("BLE_GATT", "Disconnected — scheduling reconnect")
                         _connectionState.value = ConnectionState.RECONNECTING
                         scheduleReconnect()
                     } else {
@@ -193,22 +204,25 @@ class BleManager(private val context: Context) {
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
+            // FIX 6: Cancel timeout — discovery succeeded
+            discoveryTimeoutJob?.cancel()
+            discoveryTimeoutJob = null
+
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                LogHelper.e("BleManager", "Service discovery failed: $status")
+                DebugLogger.e("BLE_GATT", "Service discovery failed: $status")
                 scheduleReconnect()
                 return
             }
             val service = gatt.getService(BleConstants.SERVICE_UUID)
             if (service == null) {
-                LogHelper.w("BleManager", "MotoRound service not found – wrong device?")
+                DebugLogger.w("BLE_GATT", "MotoRound service UUID not found")
                 return
             }
             targetCharacteristic = service.getCharacteristic(BleConstants.CHARACTERISTIC_UUID)
             if (targetCharacteristic != null) {
-                _connectionState.value = ConnectionState.CONNECTED
-                LogHelper.d("BleManager", "MotoRound service found – ready to send")
+                onConnected()
             } else {
-                LogHelper.e("BleManager", "Characteristic not found in service")
+                DebugLogger.e("BLE_GATT", "Characteristic not found in service")
             }
         }
 
@@ -218,32 +232,61 @@ class BleManager(private val context: Context) {
             status: Int
         ) {
             if (status != BluetoothGatt.GATT_SUCCESS) {
-                LogHelper.w("BleManager", "Characteristic write failed: $status")
+                DebugLogger.w("BLE_GATT", "Characteristic write failed: $status")
             }
         }
     }
 
-    // ─── Auto-Reconnect ───────────────────────────────────────────────────────
+    // ── Connection success ─────────────────────────────────────────────────
+
+    private fun onConnected() {
+        // FIX 3: Reset reconnect counter on success
+        reconnectAttempts = 0
+        _connectionState.value = ConnectionState.CONNECTED
+        DebugLogger.log("BLE_CONN", "MotoRound connected and ready")
+    }
+
+    // ── Exponential Backoff Reconnect ──────────────────────────────────────
 
     private val RECONNECT_TOKEN = Object()
 
+    /**
+     * FIX 3: Exponential backoff reconnect.
+     * Delays: 3s, 6s, 12s, 24s, 48s, 60s, 60s... (capped at MAX_RECONNECT_MS)
+     * Stops after MAX_RECONNECT_TRIES attempts.
+     */
     private fun scheduleReconnect() {
+        if (reconnectAttempts >= BleConstants.MAX_RECONNECT_TRIES) {
+            DebugLogger.log("BLE_RECON", "Max reconnect attempts ($reconnectAttempts) reached — giving up")
+            _connectionState.value = ConnectionState.DISCONNECTED
+            reconnectAttempts = 0
+            return
+        }
+
+        val delay = minOf(
+            BleConstants.BASE_RECONNECT_MS * (1L shl reconnectAttempts),
+            BleConstants.MAX_RECONNECT_MS
+        )
+        reconnectAttempts++
+        DebugLogger.log("BLE_RECON", "Attempt $reconnectAttempts — waiting ${delay}ms")
+
         mainHandler.removeCallbacksAndMessages(RECONNECT_TOKEN)
-        mainHandler.postDelayed({
-            val address = lastDeviceAddress ?: return@postDelayed
+        mainHandler.postAtTime({
+            val address = lastDeviceAddress ?: return@postAtTime
             if (shouldAutoReconnect && _connectionState.value != ConnectionState.CONNECTED) {
-                LogHelper.d("BleManager", "Auto-reconnecting to $address")
                 connect(address)
             }
-        }, BleConstants.RECONNECT_DELAY_MS, RECONNECT_TOKEN)
+        }, RECONNECT_TOKEN, android.os.SystemClock.uptimeMillis() + delay)
     }
 
-    // ─── Cleanup ──────────────────────────────────────────────────────────────
+    // ── Cleanup ────────────────────────────────────────────────────────────
 
-    /** Release all BLE resources. Call when the service is destroyed. */
     fun release() {
         shouldAutoReconnect = false
+        reconnectAttempts = 0
+        discoveryTimeoutJob?.cancel()
         mainHandler.removeCallbacksAndMessages(null)
+        scope.cancel()
         stopScan()
         bluetoothGatt?.close()
         bluetoothGatt = null

@@ -4,301 +4,458 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_primary"
-    android:keepScreenOn="true">
+    android:background="@color/garmin_bg_primary">
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         TOP BAR
-         ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- ═══ STATUS BAR ═══════════════════════════════════════════════════════ -->
 
-    <!-- BLE Status – top left -->
-    <LinearLayout
-        android:id="@+id/layoutBleStatus"
+    <!-- BLE dot (left) -->
+    <TextView
+        android:id="@+id/tvBleIndicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="@dimen/spacing_md"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:id="@+id/tvBleIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="●"
-            android:textSize="16sp"
-            android:textColor="@color/status_disconnected"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <TextView
-            android:id="@+id/tvBleLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/status_disconnected"
-            android:textSize="11sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginStart="4dp" />
-
-    </LinearLayout>
-
-    <!-- Make BLE status tappable for reconnect -->
-    <View
-        android:id="@+id/btnBleStatus"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:text="●"
+        android:textSize="14sp"
+        android:textColor="@color/ble_disconnected"
+        android:padding="12dp"
         android:clickable="true"
         android:focusable="true"
-        app:layout_constraintTop_toTopOf="@id/layoutBleStatus"
-        app:layout_constraintBottom_toBottomOf="@id/layoutBleStatus"
-        app:layout_constraintStart_toStartOf="@id/layoutBleStatus"
-        app:layout_constraintEnd_toEndOf="@id/layoutBleStatus" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- GPS Time – top center -->
+    <TextView
+        android:id="@+id/tvBleLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="BLE"
+        android:textSize="9sp"
+        android:textColor="@color/garmin_gray_1"
+        android:fontFamily="sans-serif-condensed"
+        android:textAllCaps="true"
+        app:layout_constraintTop_toTopOf="@id/tvBleIndicator"
+        app:layout_constraintBottom_toBottomOf="@id/tvBleIndicator"
+        app:layout_constraintStart_toEndOf="@id/tvBleIndicator" />
+
+    <!-- Title (center) -->
     <TextView
         android:id="@+id/tvTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/time_text_size"
-        android:textColor="@color/text_primary"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-condensed"
         android:text="--:--"
-        android:padding="@dimen/spacing_md"
+        android:textSize="18sp"
+        android:textColor="@color/garmin_white"
+        android:fontFamily="monospace"
+        android:textStyle="bold"
+        android:padding="12dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Settings button – top right -->
+    <!-- Accessibility dot (right of center) -->
+    <TextView
+        android:id="@+id/tvAccIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="◈"
+        android:textSize="14sp"
+        android:textColor="@color/acc_disabled"
+        android:padding="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvTime" />
+
+    <!-- Settings button (far right) - ID kept on bottom bar btn only -->
     <ImageButton
-        android:id="@+id/btnSettings"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:id="@+id/btnSettingsQuick"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:src="@android:drawable/ic_menu_preferences"
-        android:tint="@color/text_secondary"
+        android:tint="@color/garmin_gray_1"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/label_settings"
-        android:padding="@dimen/spacing_sm"
-        android:layout_margin="@dimen/spacing_sm"
+        android:padding="8dp"
+        android:layout_margin="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         NAVIGATION ARROW (Center)
-         ═══════════════════════════════════════════════════════════════════════ -->
-
-    <ImageView
-        android:id="@+id/ivNavArrow"
-        android:layout_width="@dimen/nav_arrow_size"
-        android:layout_height="@dimen/nav_arrow_size"
-        android:src="@drawable/ic_arrow_straight"
-        android:tint="@color/nav_arrow_tint"
-        android:contentDescription="Navigation arrow"
-        android:scaleType="fitCenter"
-        app:layout_constraintTop_toBottomOf="@id/tvTime"
-        app:layout_constraintBottom_toTopOf="@id/tvNavInstruction"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.35" />
-
-    <!-- Navigation instruction text -->
+    <!-- Accessibility banner (shown when ACC service disabled) -->
     <TextView
-        android:id="@+id/tvNavInstruction"
+        android:id="@+id/bannerAccess"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/nav_waiting"
-        style="@style/WildTribe.Text.NavInstruction"
+        android:text="@string/dashboard_banner_acc"
+        android:textSize="11sp"
+        android:textColor="@color/garmin_amber"
+        android:fontFamily="sans-serif-condensed"
+        android:textAllCaps="true"
         android:gravity="center"
-        android:padding="@dimen/spacing_md"
-        android:layout_marginHorizontal="@dimen/spacing_md"
-        app:layout_constraintTop_toBottomOf="@id/ivNavArrow"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/dividerHorizontal" />
-
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         BOTTOM WIDGET ROW
-         ═══════════════════════════════════════════════════════════════════════ -->
-
-    <View
-        android:id="@+id/dividerHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/divider"
-        app:layout_constraintBottom_toTopOf="@id/layoutWidgets"
+        android:background="@color/garmin_bg_elevated"
+        android:padding="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/tvTime"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- ═══ NAV WIDGET ════════════════════════════════════════════════════════ -->
+
     <LinearLayout
-        android:id="@+id/layoutWidgets"
-        android:layout_width="match_parent"
+        android:id="@+id/layoutNav"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/bg_nav_widget"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/bannerAccess"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layoutRow1"
+        app:layout_constraintHeight_percent="0.38">
+
+        <ImageView
+            android:id="@+id/ivNavArrow"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@drawable/ic_nav_straight"
+            android:scaleType="fitCenter"
+            android:contentDescription="Navigation arrow" />
+
+        <TextView
+            android:id="@+id/tvNavInstruction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WAITING FOR MAPS"
+            android:textSize="13sp"
+            android:textColor="@color/garmin_gray_1"
+            android:fontFamily="sans-serif-condensed"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvNavDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="42sp"
+            android:textColor="@color/garmin_white"
+            android:fontFamily="monospace"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- ═══ ROW 1: SPEED | SPEED LIMIT ═══════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/layoutRow1"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/background_secondary"
-        android:padding="@dimen/spacing_md"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutNav"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layoutRow2">
 
-        <!-- Speed Widget -->
+        <!-- SPEED -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/bg_widget"
+            android:padding="12dp"
+            android:layout_marginEnd="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SPEED"
+                style="@style/TextStyle.GarminLabel" />
 
             <TextView
                 android:id="@+id/tvSpeed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="--"
-                style="@style/WildTribe.Text.Speed" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/tvSpeedUnit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="km/h"
-                    android:textSize="@dimen/speed_unit_text_size"
-                    android:textColor="@color/text_secondary" />
-
-            </LinearLayout>
+                android:textSize="48sp"
+                android:textColor="@color/speed_normal"
+                android:fontFamily="monospace"
+                android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tvSpeedUnit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/label_speed"
-                android:textSize="@dimen/widget_label_size"
-                android:textColor="@color/text_hint"
-                android:textAllCaps="true"
-                android:letterSpacing="0.1"
-                android:layout_marginTop="2dp" />
+                android:text="km/h"
+                style="@style/TextStyle.GarminLabel" />
 
         </LinearLayout>
 
-        <!-- Vertical divider -->
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="@color/divider"
-            android:layout_marginVertical="@dimen/spacing_xs" />
-
-        <!-- ETA Widget -->
+        <!-- SPEED LIMIT -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/bg_widget"
+            android:padding="12dp"
+            android:layout_marginStart="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LIMIT"
+                style="@style/TextStyle.GarminLabel" />
+
+            <TextView
+                android:id="@+id/tvSpeedLimit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textSize="48sp"
+                android:textColor="@color/garmin_amber"
+                android:fontFamily="monospace"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="km/h"
+                style="@style/TextStyle.GarminLabel" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ═══ ROW 2: ETA | REMAINING ═══════════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/layoutRow2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutRow1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layoutRow3">
+
+        <!-- ETA -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_widget"
+            android:padding="12dp"
+            android:layout_marginEnd="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ETA"
+                style="@style/TextStyle.GarminLabel" />
 
             <TextView
                 android:id="@+id/tvEta"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="--:--"
-                android:textSize="@dimen/widget_value_size"
-                android:textColor="@color/text_primary"
+                android:textSize="28sp"
+                android:textColor="@color/garmin_white"
+                android:fontFamily="monospace"
                 android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_eta"
-                android:textSize="@dimen/widget_label_size"
-                android:textColor="@color/text_hint"
-                android:textAllCaps="true"
-                android:letterSpacing="0.1"
-                android:layout_marginTop="2dp" />
 
         </LinearLayout>
 
-        <!-- Vertical divider -->
-        <View
-            android:layout_width="1dp"
-            android:layout_height="match_parent"
-            android:background="@color/divider"
-            android:layout_marginVertical="@dimen/spacing_xs" />
-
-        <!-- Distance Widget -->
+        <!-- REMAINING -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:background="@drawable/bg_widget"
+            android:padding="12dp"
+            android:layout_marginStart="4dp">
 
             <TextView
-                android:id="@+id/tvDistanceRemaining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REMAINING"
+                style="@style/TextStyle.GarminLabel" />
+
+            <TextView
+                android:id="@+id/tvRemaining"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="--"
-                android:textSize="@dimen/widget_value_size"
-                android:textColor="@color/text_primary"
+                android:textSize="28sp"
+                android:textColor="@color/garmin_white"
+                android:fontFamily="monospace"
                 android:textStyle="bold" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ═══ ROW 3: RIDE TIME | AVG SPEED ═════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/layoutRow3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/layoutRow2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomBar">
+
+        <!-- RIDE TIME -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_widget"
+            android:padding="12dp"
+            android:layout_marginEnd="4dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/label_distance"
-                android:textSize="@dimen/widget_label_size"
-                android:textColor="@color/text_hint"
-                android:textAllCaps="true"
-                android:letterSpacing="0.1"
-                android:layout_marginTop="2dp" />
+                android:text="RIDE TIME"
+                style="@style/TextStyle.GarminLabel" />
+
+            <TextView
+                android:id="@+id/tvRideTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:00:00"
+                android:textSize="22sp"
+                android:textColor="@color/garmin_white"
+                android:fontFamily="monospace"
+                android:textStyle="bold" />
 
         </LinearLayout>
 
+        <!-- AVG SPEED -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_widget"
+            android:padding="12dp"
+            android:layout_marginStart="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AVG SPEED"
+                style="@style/TextStyle.GarminLabel" />
+
+            <TextView
+                android:id="@+id/tvAvgSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="-- km/h"
+                android:textSize="22sp"
+                android:textColor="@color/garmin_white"
+                android:fontFamily="monospace"
+                android:textStyle="bold" />
+
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         SPEED WARNING OVERLAY
-         ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- ═══ BOTTOM ACTION BAR ═════════════════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/layoutBottomBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/garmin_bg_panel"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <Button
+            android:id="@+id/btnDisconnect"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="DISCONNECT"
+            style="@style/Widget.GarminButton.Danger"
+            android:layout_marginEnd="4dp" />
+
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SETTINGS"
+            style="@style/Widget.GarminButton"
+            android:layout_marginHorizontal="4dp" />
+
+        <Button
+            android:id="@+id/btnLog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="LOG"
+            style="@style/Widget.GarminButton"
+            android:layout_marginStart="4dp" />
+
+    </LinearLayout>
+
+    <!-- ═══ SPEED WARNING OVERLAY ════════════════════════════════════════════ -->
 
     <LinearLayout
         android:id="@+id/layoutSpeedWarning"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="@color/warning_background"
-        android:padding="@dimen/spacing_md"
+        android:background="@color/speed_warn_bg"
+        android:padding="10dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tvTime"
+        app:layout_constraintTop_toBottomOf="@id/bannerAccess"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/slow_down"
-            android:textSize="18sp"
-            android:textColor="@color/warning_red"
-            android:textStyle="bold" />
+            android:text="SLOW DOWN"
+            android:textSize="16sp"
+            android:textColor="@color/garmin_red"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.12" />
 
     </LinearLayout>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════
-         NOTIFICATION BANNER OVERLAY (5 second auto-dismiss)
-         ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- ═══ NOTIFICATION BANNER (5s auto-dismiss) ════════════════════════════ -->
 
     <LinearLayout
         android:id="@+id/layoutNotification"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@color/notification_bg"
-        android:padding="@dimen/spacing_md"
+        android:padding="14dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/layoutWidgets"
+        app:layout_constraintBottom_toTopOf="@id/layoutBottomBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -306,17 +463,18 @@
             android:id="@+id/tvNotificationTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/notification_title_size"
-            android:textColor="@color/orange_primary"
+            android:textSize="14sp"
+            android:textColor="@color/garmin_green"
             android:textStyle="bold"
-            android:gravity="center" />
+            android:gravity="center"
+            android:fontFamily="sans-serif-condensed" />
 
         <TextView
             android:id="@+id/tvNotificationText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/notification_text_size"
-            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:textColor="@color/garmin_gray_1"
             android:gravity="center"
             android:layout_marginTop="2dp" />
 

@@ -4,186 +4,328 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_primary"
+    android:background="@color/garmin_bg_primary"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/spacing_md">
+        android:padding="12dp">
 
         <!-- ══════════════════════════════════════════════════════════════════
-             DEVICE CONNECTION
+             DEVICE
              ══════════════════════════════════════════════════════════════════ -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/section_device"
-            android:textSize="12sp"
-            android:textColor="@color/orange_primary"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:paddingVertical="@dimen/spacing_sm" />
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp" />
 
-        <androidx.cardview.widget.CardView
-            style="@style/WildTribe.Card"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_saved_device"
+                style="@style/TextStyle.GarminLabel" />
+
+            <TextView
+                android:id="@+id/tvSavedDevice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/no_device_saved"
+                android:textSize="14sp"
+                android:textColor="@color/garmin_white"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_md">
+                android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_saved_device"
+                <Button
+                    android:id="@+id/btnReconnectDevice"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/btn_reconnect"
+                    style="@style/Widget.GarminButton.Primary"
                     android:textSize="12sp"
-                    android:textColor="@color/text_secondary" />
+                    android:layout_marginEnd="4dp" />
 
-                <TextView
-                    android:id="@+id/tvSavedDevice"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/no_device_saved"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="@dimen/spacing_md" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <Button
-                        android:id="@+id/btnReconnectDevice"
-                        style="@style/WildTribe.Button.Primary"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_reconnect"
-                        android:textSize="12sp"
-                        android:layout_marginEnd="@dimen/spacing_sm" />
-
-                    <Button
-                        android:id="@+id/btnForgetDevice"
-                        style="@style/WildTribe.Button.Secondary"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_weight="1"
-                        android:text="@string/btn_forget_device"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
+                <Button
+                    android:id="@+id/btnForgetDevice"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/btn_forget_device"
+                    style="@style/Widget.GarminButton.Danger"
+                    android:textSize="12sp" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+        </LinearLayout>
 
         <!-- ══════════════════════════════════════════════════════════════════
-             SPEED SETTINGS
+             UNITS
              ══════════════════════════════════════════════════════════════════ -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/section_speed"
-            android:textSize="12sp"
-            android:textColor="@color/orange_primary"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:paddingVertical="@dimen/spacing_sm"
-            android:layout_marginTop="@dimen/spacing_md" />
+            android:text="UNITS"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
 
-        <androidx.cardview.widget.CardView
-            style="@style/WildTribe.Card"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_speed_unit"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_1"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleSpeedUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <Button
+                    android:id="@+id/btnKmh"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="km/h"
+                    android:textColor="@color/garmin_white" />
+
+                <Button
+                    android:id="@+id/btnMph"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="mph"
+                    android:textColor="@color/garmin_white" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             WARNINGS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="WARNINGS"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/label_speed_warning"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_1" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_md">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
 
-                <!-- Speed Unit Toggle -->
+                <SeekBar
+                    android:id="@+id/seekSpeedWarning"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="200"
+                    android:progress="100"
+                    android:progressTint="@color/garmin_amber"
+                    android:thumbTint="@color/garmin_amber" />
+
                 <TextView
+                    android:id="@+id/tvSpeedWarningValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/label_speed_unit"
+                    android:text="100 km/h"
                     android:textSize="14sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginBottom="@dimen/spacing_sm" />
-
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/toggleSpeedUnit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:singleSelection="true"
-                    app:selectionRequired="true">
-
-                    <Button
-                        android:id="@+id/btnKmh"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="km/h"
-                        android:textColor="@color/text_primary" />
-
-                    <Button
-                        android:id="@+id/btnMph"
-                        style="?attr/materialButtonOutlinedStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="mph"
-                        android:textColor="@color/text_primary" />
-
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-
-                <!-- Speed Warning Slider -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/label_speed_warning"
-                    android:textSize="14sp"
-                    android:textColor="@color/text_primary"
-                    android:layout_marginTop="@dimen/spacing_md" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <SeekBar
-                        android:id="@+id/seekSpeedWarning"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:max="200"
-                        android:progress="100"
-                        android:progressTint="@color/orange_primary"
-                        android:thumbTint="@color/orange_primary" />
-
-                    <TextView
-                        android:id="@+id/tvSpeedWarningValue"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="100 km/h"
-                        android:textSize="14sp"
-                        android:textColor="@color/orange_primary"
-                        android:textStyle="bold"
-                        android:layout_marginStart="@dimen/spacing_sm"
-                        android:minWidth="72dp" />
-
-                </LinearLayout>
+                    android:textColor="@color/garmin_amber"
+                    android:textStyle="bold"
+                    android:layout_marginStart="10dp"
+                    android:minWidth="72dp" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="VIBRATE ON WARNING"
+                    style="@style/TextStyle.GarminLabel" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchVibrate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             ACCESSIBILITY
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ACCESSIBILITY"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="MAPS READING STATUS"
+                    style="@style/TextStyle.GarminLabel" />
+
+                <TextView
+                    android:id="@+id/tvAccStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/acc_status_inactive"
+                    android:textSize="12sp"
+                    android:textColor="@color/garmin_red"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textAllCaps="true" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnEnableAcc"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/acc_dialog_btn_open"
+                style="@style/Widget.GarminButton.Primary"
+                android:layout_marginTop="10dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             DISPLAY
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DISPLAY"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SCREEN TIMEOUT"
+                style="@style/TextStyle.GarminLabel"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnScreenAlwaysOn"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="ALWAYS ON"
+                    style="@style/Widget.GarminButton"
+                    android:textSize="10sp"
+                    android:layout_marginEnd="2dp" />
+
+                <Button
+                    android:id="@+id/btnScreen10Min"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="10 MIN"
+                    style="@style/Widget.GarminButton"
+                    android:textSize="10sp"
+                    android:layout_marginHorizontal="2dp" />
+
+                <Button
+                    android:id="@+id/btnScreenSystem"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="SYSTEM"
+                    style="@style/Widget.GarminButton"
+                    android:textSize="10sp"
+                    android:layout_marginStart="2dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
 
         <!-- ══════════════════════════════════════════════════════════════════
              NOTIFICATIONS
@@ -192,176 +334,188 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/section_notifications"
-            android:textSize="12sp"
-            android:textColor="@color/orange_primary"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:paddingVertical="@dimen/spacing_sm"
-            android:layout_marginTop="@dimen/spacing_md" />
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
 
-        <androidx.cardview.widget.CardView
-            style="@style/WildTribe.Card"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_md">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:layout_weight="1"
+                    android:text="@string/label_notifications"
+                    android:textSize="13sp"
+                    android:textColor="@color/garmin_gray_1" />
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/label_notifications"
-                        android:textSize="14sp"
-                        android:textColor="@color/text_primary" />
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchNotifications"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true" />
-
-                </LinearLayout>
-
-                <Button
-                    android:id="@+id/btnGrantNotifAccess"
-                    style="@style/WildTribe.Button.Secondary"
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchNotifications"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="@string/btn_grant_notif_access"
-                    android:textSize="12sp"
-                    android:layout_marginTop="@dimen/spacing_sm" />
+                    android:layout_height="wrap_content" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+            <Button
+                android:id="@+id/btnGrantNotifAccess"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/btn_grant_notif_access"
+                style="@style/Widget.GarminButton"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp" />
+
+        </LinearLayout>
 
         <!-- ══════════════════════════════════════════════════════════════════
-             TASKER & TIPS
+             DEBUG
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DEBUG"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <Button
+                android:id="@+id/btnViewLogs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="VIEW LOGS"
+                style="@style/Widget.GarminButton" />
+
+            <Button
+                android:id="@+id/btnExportLogs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/btn_export_logs"
+                style="@style/Widget.GarminButton"
+                android:layout_marginTop="6dp" />
+
+            <Button
+                android:id="@+id/btnClearLogs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="CLEAR LOGS"
+                style="@style/Widget.GarminButton.Danger"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TASKER
              ══════════════════════════════════════════════════════════════════ -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/section_tasker"
-            android:textSize="12sp"
-            android:textColor="@color/orange_primary"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:paddingVertical="@dimen/spacing_sm"
-            android:layout_marginTop="@dimen/spacing_md" />
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
 
-        <androidx.cardview.widget.CardView
-            style="@style/WildTribe.Card"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
 
-            <LinearLayout
+            <Button
+                android:id="@+id/btnTaskerGuide"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_md">
+                android:layout_height="44dp"
+                android:text="@string/btn_tasker_guide"
+                style="@style/Widget.GarminButton" />
 
-                <Button
-                    android:id="@+id/btnTaskerGuide"
-                    style="@style/WildTribe.Button.Secondary"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="@string/btn_tasker_guide" />
-
-                <Button
-                    android:id="@+id/btnRiderTips"
-                    style="@style/WildTribe.Button.Secondary"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="@string/btn_rider_tips"
-                    android:layout_marginTop="@dimen/spacing_sm" />
-
-            </LinearLayout>
-
-        </androidx.cardview.widget.CardView>
+        </LinearLayout>
 
         <!-- ══════════════════════════════════════════════════════════════════
-             FEEDBACK
+             ABOUT
              ══════════════════════════════════════════════════════════════════ -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/section_feedback"
-            android:textSize="12sp"
-            android:textColor="@color/orange_primary"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:paddingVertical="@dimen/spacing_sm"
-            android:layout_marginTop="@dimen/spacing_md" />
+            android:text="ABOUT"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
 
-        <androidx.cardview.widget.CardView
-            style="@style/WildTribe.Card"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_md">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
 
                 <TextView
-                    android:id="@+id/tvRideCount"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="VERSION"
+                    style="@style/TextStyle.GarminLabel" />
+
+                <TextView
+                    android:id="@+id/tvVersionName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rides completed: 0"
+                    android:text="--"
                     android:textSize="13sp"
-                    android:textColor="@color/text_secondary"
-                    android:layout_marginBottom="@dimen/spacing_sm" />
-
-                <Button
-                    android:id="@+id/btnRateApp"
-                    style="@style/WildTribe.Button.Primary"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="@string/btn_rate_app" />
-
-                <Button
-                    android:id="@+id/btnSendFeedback"
-                    style="@style/WildTribe.Button.Secondary"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="@string/btn_send_feedback"
-                    android:layout_marginTop="@dimen/spacing_sm" />
-
-                <Button
-                    android:id="@+id/btnReportIssue"
-                    style="@style/WildTribe.Button.Secondary"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="@string/btn_report_issue"
-                    android:layout_marginTop="@dimen/spacing_sm" />
-
-                <Button
-                    android:id="@+id/btnExportLogs"
-                    style="@style/WildTribe.Button.Secondary"
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:text="@string/btn_export_logs"
-                    android:layout_marginTop="@dimen/spacing_sm" />
+                    android:textColor="@color/garmin_gray_1"
+                    android:fontFamily="monospace" />
 
             </LinearLayout>
 
-        </androidx.cardview.widget.CardView>
+            <TextView
+                android:id="@+id/tvRideCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rides completed: 0"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_2"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnRateApp"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="@string/btn_rate_app"
+                style="@style/Widget.GarminButton.Primary" />
+
+        </LinearLayout>
 
         <!-- Bottom padding -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="@dimen/spacing_xl" />
+            android:layout_height="24dp" />
 
     </LinearLayout>
 

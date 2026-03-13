@@ -3,24 +3,23 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- ========== BLUETOOTH PERMISSIONS ========== -->
-    <!-- Legacy Bluetooth (API < 31) -->
     <uses-permission android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
-
-    <!-- Modern Bluetooth (API 31+) -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"
         tools:targetApi="s" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"
-        tools:targetApi="s" />
 
-    <!-- Location (required for BLE scanning on API < 31) -->
+    <!-- ========== LOCATION (required for BLE scan < API 31) ========== -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- ========== GPS SPEED ========== -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"
+        android:minSdkVersion="29" />
 
     <!-- ========== NOTIFICATIONS ========== -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -31,14 +30,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
-    <!-- ========== BOOT & NETWORK ========== -->
+    <!-- ========== BOOT / VIBRATE / WAKE ========== -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- ========== BLE HARDWARE FEATURES ========== -->
-    <uses-feature
-        android:name="android.hardware.bluetooth_le"
-        android:required="true" />
+    <!-- ========== BLE HARDWARE ========== -->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
     <application
         android:name=".WildTribeDriveApp"
@@ -55,7 +53,6 @@
 
         <!-- ========== ACTIVITIES ========== -->
 
-        <!-- Splash Screen -->
         <activity
             android:name=".ui.splash.SplashActivity"
             android:exported="true"
@@ -68,27 +65,25 @@
             </intent-filter>
         </activity>
 
-        <!-- Bluetooth Scan / Connection Screen -->
         <activity
             android:name=".ui.bluetooth.BluetoothScanActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Dashboard - Main Riding Screen -->
         <activity
             android:name=".ui.dashboard.DashboardActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:keepScreenOn="true"
+            android:theme="@style/Theme.WildTribeDrive.Dashboard"
             android:windowSoftInputMode="stateHidden" />
 
-        <!-- Settings Screen -->
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:label="@string/title_settings" />
+            android:label="@string/title_settings"
+            android:theme="@style/Theme.WildTribeDrive.Settings" />
 
         <!-- ========== SERVICES ========== -->
 
@@ -96,12 +91,25 @@
         <service
             android:name=".ble.BleService"
             android:exported="false"
-            android:foregroundServiceType="connectedDevice">
+            android:foregroundServiceType="connectedDevice|location" />
+
+        <!-- Accessibility Service — reads Google Maps navigation -->
+        <service
+            android:name=".accessibility.MapsAccessibilityService"
+            android:exported="true"
+            android:label="@string/acc_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
         </service>
 
         <!-- Notification Listener Service -->
         <service
-            android:name=".ble.WildTribeNotificationService"
+            android:name=".notification.NotificationListenerService"
             android:exported="true"
             android:label="@string/notification_listener_label"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
@@ -110,7 +118,7 @@
             </intent-filter>
         </service>
 
-        <!-- ========== FILE PROVIDER (for log export) ========== -->
+        <!-- ========== FILE PROVIDER ========== -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -123,18 +131,14 @@
 
         <!-- ========== RECEIVERS ========== -->
 
-        <!-- Tasker Integration Receiver -->
         <receiver
             android:name=".receiver.TaskerReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.wildtribe.drive.SEND_COMMAND" />
-                <action android:name="com.wildtribe.drive.NAV_COMMAND" />
-                <action android:name="com.wildtribe.drive.SPEED_UPDATE" />
             </intent-filter>
         </receiver>
 
-        <!-- Boot Receiver for auto-start -->
         <receiver
             android:name=".receiver.BootReceiver"
             android:exported="true">

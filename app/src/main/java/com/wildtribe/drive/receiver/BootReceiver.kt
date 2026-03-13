@@ -4,14 +4,14 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.wildtribe.drive.ble.BleService
-import com.wildtribe.drive.util.LogHelper
-import com.wildtribe.drive.util.PreferenceHelper
+import com.wildtribe.drive.data.RideRepository
+import com.wildtribe.drive.utils.DebugLogger
 
 /**
- * Starts the BLE service automatically after device boot,
- * so the MotoRound reconnects without user intervention.
+ * Auto-starts BLE service after device reboot.
+ * Only reconnects if a device was previously paired.
  *
- * Only starts if a device was previously saved.
+ * TEST: Boot receiver starts BleService after phone restart
  */
 class BootReceiver : BroadcastReceiver() {
 
@@ -19,10 +19,12 @@ class BootReceiver : BroadcastReceiver() {
         when (intent.action) {
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_MY_PACKAGE_REPLACED -> {
-                if (PreferenceHelper.hasSavedDevice(context)) {
-                    LogHelper.i("BootReceiver", "Boot complete – starting BLE service")
-                    val serviceIntent = BleService.buildConnectIntent(context)
-                    context.startForegroundService(serviceIntent)
+                val repo = RideRepository(context)
+                if (repo.savedDeviceAddress != null) {
+                    DebugLogger.log("BOOT", "Boot complete — starting BLE service to reconnect")
+                    context.startForegroundService(BleService.buildConnectIntent(context))
+                } else {
+                    DebugLogger.log("BOOT", "Boot complete — no saved device, skipping auto-start")
                 }
             }
         }

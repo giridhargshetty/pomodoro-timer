@@ -1,49 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ─── Brand Colors ──────────────────────────────────────────────────── -->
-    <color name="orange_primary">#FF6B00</color>
-    <color name="orange_dark">#CC5500</color>
-    <color name="orange_light">#FF8C3A</color>
+    <!-- ─── Garmin Backgrounds ────────────────────────────────────────────── -->
+    <color name="garmin_bg_primary">#0A0A0F</color>
+    <color name="garmin_bg_surface">#111118</color>
+    <color name="garmin_bg_elevated">#1A1A24</color>
+    <color name="garmin_bg_panel">#0D0D14</color>
 
-    <!-- ─── Background Shades ─────────────────────────────────────────────── -->
-    <color name="background_primary">#0D0D0D</color>
-    <color name="background_secondary">#1A1A1A</color>
-    <color name="surface_card">#1E1E1E</color>
-    <color name="surface_elevated">#2A2A2A</color>
-    <color name="motoround_highlight">#1A2200</color>
+    <!-- ─── Garmin Accent Colors ──────────────────────────────────────────── -->
+    <color name="garmin_green">#00C896</color>
+    <color name="garmin_green_dim">#007A5C</color>
+    <color name="garmin_amber">#FFB300</color>
+    <color name="garmin_red">#FF3B30</color>
+    <color name="garmin_blue">#4A9EFF</color>
+    <color name="garmin_white">#EAEAF2</color>
+    <color name="garmin_gray_1">#9090A0</color>
+    <color name="garmin_gray_2">#505060</color>
+    <color name="garmin_gray_3">#252530</color>
 
-    <!-- ─── Text Colors ───────────────────────────────────────────────────── -->
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#AAAAAA</color>
-    <color name="text_hint">#666666</color>
-    <color name="text_orange">#FF6B00</color>
+    <!-- ─── Navigation Direction Colors ──────────────────────────────────── -->
+    <color name="nav_right">#00C896</color>
+    <color name="nav_left">#4A9EFF</color>
+    <color name="nav_uturn">#FF3B30</color>
+    <color name="nav_straight">#EAEAF2</color>
+    <color name="nav_arrive">#FFB300</color>
 
-    <!-- ─── Connection Status ─────────────────────────────────────────────── -->
-    <color name="status_connected">#00C853</color>
-    <color name="status_connecting">#FF9100</color>
-    <color name="status_disconnected">#FF1744</color>
+    <!-- ─── Speed Colors ──────────────────────────────────────────────────── -->
+    <color name="speed_normal">#00C896</color>
+    <color name="speed_warn">#FFB300</color>
+    <color name="speed_danger">#FF3B30</color>
 
-    <!-- ─── Signal Strength ───────────────────────────────────────────────── -->
-    <color name="signal_excellent">#00C853</color>
-    <color name="signal_good">#69F0AE</color>
-    <color name="signal_fair">#FFAB40</color>
-    <color name="signal_weak">#FF5252</color>
+    <!-- ─── BLE Status Colors ─────────────────────────────────────────────── -->
+    <color name="ble_connected">#00C896</color>
+    <color name="ble_scanning">#4A9EFF</color>
+    <color name="ble_disconnected">#FF3B30</color>
 
-    <!-- ─── Warning / Alert ───────────────────────────────────────────────── -->
-    <color name="warning_red">#FF1744</color>
-    <color name="warning_background">#4DFF1744</color>
+    <!-- ─── Accessibility Status Colors ──────────────────────────────────── -->
+    <color name="acc_active">#00C896</color>
+    <color name="acc_inactive">#FFB300</color>
+    <color name="acc_disabled">#FF3B30</color>
 
-    <!-- ─── Widget / Dashboard ───────────────────────────────────────────── -->
-    <color name="widget_background">#222222</color>
-    <color name="nav_arrow_tint">#FF6B00</color>
-    <color name="notification_bg">#CC000000</color>
-    <color name="speed_text">#FFFFFF</color>
-
-    <!-- ─── Material / System ────────────────────────────────────────────── -->
-    <color name="colorPrimary">#FF6B00</color>
-    <color name="colorPrimaryDark">#CC5500</color>
-    <color name="colorAccent">#FF6B00</color>
+    <!-- ─── Semantic Aliases (legacy compat) ─────────────────────────────── -->
+    <color name="colorPrimary">#00C896</color>
+    <color name="colorPrimaryDark">#007A5C</color>
+    <color name="colorAccent">#FFB300</color>
+    <color name="colorError">#FF3B30</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
-    <color name="divider">#333333</color>
+
+    <!-- ─── Overlays ──────────────────────────────────────────────────────── -->
+    <color name="notification_bg">#E60A0A0F</color>
+    <color name="speed_warn_bg">#33FF3B30</color>
+    <color name="scan_pulse">#4D00C896</color>
 </resources>

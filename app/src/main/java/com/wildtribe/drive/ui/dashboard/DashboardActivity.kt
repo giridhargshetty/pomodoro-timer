@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.os.Bundle
 import android.os.IBinder
+import android.os.Vibrator
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.viewModels
@@ -17,64 +18,82 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.wildtribe.drive.R
+import com.wildtribe.drive.accessibility.MapsAccessibilityService
 import com.wildtribe.drive.ble.BleConstants
 import com.wildtribe.drive.ble.BleService
+import com.wildtribe.drive.data.RideRepository
 import com.wildtribe.drive.databinding.ActivityDashboardBinding
 import com.wildtribe.drive.model.ConnectionState
 import com.wildtribe.drive.model.NavDirection
+import com.wildtribe.drive.model.NavigationData
 import com.wildtribe.drive.ui.settings.SettingsActivity
-import com.wildtribe.drive.util.LogHelper
-import com.wildtribe.drive.util.PreferenceHelper
-import com.wildtribe.drive.util.ReviewManager
+import com.wildtribe.drive.utils.DebugLogger
+import com.wildtribe.drive.utils.PermissionHelper
+import com.wildtribe.drive.utils.UnitConverter
 import com.wildtribe.drive.viewmodel.DashboardViewModel
 import kotlinx.coroutines.launch
 
 /**
- * Main riding dashboard – the Garmin-style navigation companion screen.
+ * Main Garmin-style riding dashboard.
  *
- * Layout zones:
- *  - Top-left:   BLE connection status indicator
- *  - Top-center: GPS time (HH:mm)
- *  - Center:     Large navigation arrow
- *  - Below arrow: Instruction text
- *  - Bottom:      Speed | ETA | Distance widgets
- *  - Overlay:     Speed warning banner
- *  - Overlay:     Incoming notification banner (5s auto-dismiss)
+ * Layout (portrait):
+ *  ┌────────────────────────────────┐
+ *  │ [BLE●] WILD TRIBE DRIVE [ACC●] │  ← Status bar
+ *  ├────────────────────────────────┤
+ *  │     [BIG TURN ARROW]           │  ← Nav widget: arrow + direction + distance
+ *  ├──────────────┬─────────────────┤
+ *  │  SPEED       │  SPEED LIMIT    │  ← Two widgets
+ *  ├──────────────┴─────────────────┤
+ *  │  ETA          REMAINING        │  ← Two widgets
+ *  ├────────────────────────────────┤
+ *  │  RIDE TIME    AVG SPEED        │  ← Two widgets
+ *  ├────────────────────────────────┤
+ *  │ [DISCONNECT] [SETTINGS] [LOG]  │  ← Bottom action bar
+ *  └────────────────────────────────┘
+ *
+ * FIX 7: Screen timeout setting (always_on / 10_min / system)
+ *
+ * TEST: Speed warning vibrates at correct threshold
+ * TEST: Screen stays on during ride (if Always On setting)
  */
 class DashboardActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardBinding
     private val viewModel: DashboardViewModel by viewModels()
+    private lateinit var repo: RideRepository
 
-    // ─── BLE Service Binding ──────────────────────────────────────────────────
     private var bleService: BleService? = null
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             bleService = (binder as? BleService.LocalBinder)?.getService()
-            LogHelper.d("Dashboard", "Bound to BleService")
+            DebugLogger.log("Dashboard", "Bound to BleService")
         }
         override fun onServiceDisconnected(name: ComponentName?) { bleService = null }
     }
 
-    // ─── Broadcast Receiver ───────────────────────────────────────────────────
     private val commandReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 BleConstants.ACTION_NAVIGATION_COMMAND -> {
                     val cmd = intent.getStringExtra(BleConstants.EXTRA_COMMAND) ?: return
-                    LogHelper.d("Dashboard", "Nav command: $cmd")
                     viewModel.processCommand(cmd)
                 }
                 BleConstants.ACTION_BLE_STATE_CHANGED -> {
                     val stateName = intent.getStringExtra(BleConstants.EXTRA_CONNECTION_STATE)
-                    val state = stateName?.let { runCatching { ConnectionState.valueOf(it) }.getOrNull() }
-                        ?: ConnectionState.DISCONNECTED
+                    val state = stateName?.let {
+                        runCatching { ConnectionState.valueOf(it) }.getOrNull()
+                    } ?: ConnectionState.DISCONNECTED
                     viewModel.updateConnectionState(state)
                 }
-                BleConstants.ACTION_PHONE_NOTIFICATION -> {
-                    val title = intent.getStringExtra(BleConstants.EXTRA_NOTIFICATION_TITLE) ?: return
-                    val text = intent.getStringExtra(BleConstants.EXTRA_NOTIFICATION_TEXT) ?: ""
-                    viewModel.showNotificationBanner(title, text)
+                BleService.ACTION_GPS_SPEED -> {
+                    val kph = intent.getIntExtra(BleService.EXTRA_SPEED_KPH, 0)
+                    viewModel.updateGpsSpeed(kph)
+                }
+                MapsAccessibilityService.ACTION_SERVICE_STATE -> {
+                    val active = intent.getBooleanExtra(
+                        MapsAccessibilityService.EXTRA_SERVICE_ACTIVE, false
+                    )
+                    updateAccIndicator(active)
                 }
             }
         }
@@ -82,54 +101,90 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Keep screen on while riding
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
+        repo = RideRepository(this)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // FIX 7: Apply screen timeout from settings
+        applyScreenTimeout()
 
         setupClickListeners()
         observeViewModel()
         bindBleService()
         registerCommandReceiver()
+        updateAccIndicator(PermissionHelper.isAccessibilityServiceEnabled(this))
 
-        // Track ride start for review eligibility
-        PreferenceHelper.incrementRideCount(this)
+        // Show accessibility banner if service not enabled
+        val accEnabled = PermissionHelper.isAccessibilityServiceEnabled(this)
+        binding.bannerAccess?.visibility = if (accEnabled) View.GONE else View.VISIBLE
+
+        repo.startSession()
+        DebugLogger.log("Dashboard", "Activity started")
     }
 
     override fun onResume() {
         super.onResume()
-        // Check review eligibility after rides threshold
-        ReviewManager.checkAndRequestReview(this)
+        // FIX 7: Re-apply screen timeout in case setting changed
+        applyScreenTimeout()
+        updateAccIndicator(PermissionHelper.isAccessibilityServiceEnabled(this))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(commandReceiver)
+        try { unregisterReceiver(commandReceiver) } catch (_: Exception) {}
         if (bleService != null) {
-            unbindService(serviceConnection)
+            try { unbindService(serviceConnection) } catch (_: Exception) {}
+        }
+        repo.endSession()
+    }
+
+    // ── Screen Timeout (FIX 7) ────────────────────────────────────────────
+
+    /**
+     * FIX 7: Control screen wake lock based on settings.
+     * TEST: Screen stays on during ride (if Always On setting)
+     */
+    private fun applyScreenTimeout() {
+        when (repo.screenTimeout) {
+            "always_on" -> window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else        -> window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 
-    // ─── Setup ────────────────────────────────────────────────────────────────
+    // ── Click Listeners ────────────────────────────────────────────────────
 
     private fun setupClickListeners() {
-        binding.btnSettings.setOnClickListener {
+        binding.btnSettings?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
-        binding.btnBleStatus.setOnClickListener {
-            // Tap BLE indicator to reconnect
-            if (bleService?.bleManager?.connectionState?.value != ConnectionState.CONNECTED) {
-                val savedAddress = PreferenceHelper.getSavedDeviceAddress(this)
-                savedAddress?.let { bleService?.connectToDevice(it) }
+        binding.btnDisconnect?.setOnClickListener {
+            bleService?.bleManager?.disconnect()
+        }
+        binding.btnLog?.setOnClickListener {
+            showLogDialog()
+        }
+        // Tap BLE dot to reconnect
+        binding.tvBleIndicator?.setOnClickListener {
+            val saved = repo.savedDeviceAddress
+            if (bleService?.bleManager?.connectionState?.value != ConnectionState.CONNECTED && saved != null) {
+                bleService?.connectToDevice(saved)
             }
+        }
+        // Tap ACC dot when disabled → open permission flow
+        binding.tvAccIndicator?.setOnClickListener {
+            if (!PermissionHelper.isAccessibilityServiceEnabled(this)) {
+                PermissionHelper.openAccessibilitySettings(this)
+            }
+        }
+        binding.bannerAccess?.setOnClickListener {
+            PermissionHelper.openAccessibilitySettings(this)
         }
     }
 
+    // ── Service Binding ────────────────────────────────────────────────────
+
     private fun bindBleService() {
-        val intent = BleService.buildConnectIntent(this)
-        startForegroundService(intent)
+        startForegroundService(BleService.buildConnectIntent(this))
         bindService(
             Intent(this, BleService::class.java),
             serviceConnection,
@@ -141,84 +196,159 @@ class DashboardActivity : AppCompatActivity() {
         val filter = IntentFilter().apply {
             addAction(BleConstants.ACTION_NAVIGATION_COMMAND)
             addAction(BleConstants.ACTION_BLE_STATE_CHANGED)
-            addAction(BleConstants.ACTION_PHONE_NOTIFICATION)
+            addAction(BleService.ACTION_GPS_SPEED)
+            addAction(MapsAccessibilityService.ACTION_SERVICE_STATE)
         }
         registerReceiver(commandReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
     }
 
-    // ─── ViewModel Observers ──────────────────────────────────────────────────
+    // ── ViewModel Observers ────────────────────────────────────────────────
 
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.navData.collect { data -> updateNavigationUI(data) } }
-                launch { viewModel.connectionState.collect { state -> updateBleIndicator(state) } }
-                launch { viewModel.speedWarning.collect { warn -> updateSpeedWarning(warn) } }
-                launch { viewModel.notification.collect { notif -> updateNotificationBanner(notif) } }
-                launch { viewModel.currentTime.collect { time -> binding.tvTime.text = time } }
+                launch { viewModel.navData.collect { updateNavigationUI(it) } }
+                launch { viewModel.connectionState.collect { updateBleIndicator(it) } }
+                launch { viewModel.speedWarning.collect { updateSpeedWarning(it) } }
+                launch { viewModel.notification.collect { updateNotificationBanner(it) } }
+                launch { viewModel.currentTime.collect { binding.tvTime?.text = it } }
+                launch { viewModel.rideTime.collect { binding.tvRideTime?.text = it } }
+                launch { viewModel.avgSpeed.collect { spd ->
+                    binding.tvAvgSpeed?.text = UnitConverter.formatSpeed(spd, repo.useKph)
+                }}
             }
         }
     }
 
-    // ─── UI Update Methods ────────────────────────────────────────────────────
+    // ── UI Updates ─────────────────────────────────────────────────────────
 
-    private fun updateNavigationUI(data: com.wildtribe.drive.model.NavigationData) {
-        // Navigation arrow
-        val arrowRes = when (data.direction) {
-            NavDirection.RIGHT    -> R.drawable.ic_arrow_right
-            NavDirection.LEFT     -> R.drawable.ic_arrow_left
-            NavDirection.STRAIGHT -> R.drawable.ic_arrow_straight
-            NavDirection.UTURN    -> R.drawable.ic_arrow_uturn
-            NavDirection.ARRIVE   -> R.drawable.ic_arrive
-            NavDirection.NONE     -> R.drawable.ic_arrow_straight
+    private fun updateNavigationUI(data: NavigationData) {
+        // Arrow icon + color per direction
+        val (arrowRes, arrowColor) = when (data.direction) {
+            NavDirection.RIGHT    -> Pair(R.drawable.ic_nav_right,    R.color.nav_right)
+            NavDirection.LEFT     -> Pair(R.drawable.ic_nav_left,     R.color.nav_left)
+            NavDirection.STRAIGHT -> Pair(R.drawable.ic_nav_straight, R.color.nav_straight)
+            NavDirection.UTURN    -> Pair(R.drawable.ic_nav_uturn,    R.color.nav_uturn)
+            NavDirection.ARRIVE   -> Pair(R.drawable.ic_nav_arrive,   R.color.nav_arrive)
+            NavDirection.NONE     -> Pair(R.drawable.ic_nav_straight, R.color.garmin_gray_2)
         }
-        binding.ivNavArrow.setImageResource(arrowRes)
+        binding.ivNavArrow?.setImageResource(arrowRes)
+        binding.ivNavArrow?.alpha = if (data.direction == NavDirection.NONE) 0.3f else 1f
 
-        // Show/hide arrow (hide when no active navigation)
-        binding.ivNavArrow.alpha = if (data.direction == NavDirection.NONE) 0.3f else 1f
+        // U-turn blink animation
+        if (data.direction == NavDirection.UTURN) {
+            startBlinkAnimation()
+        } else {
+            stopBlinkAnimation()
+        }
 
-        // Instruction text
-        binding.tvNavInstruction.text = data.instructionText
+        binding.tvNavInstruction?.text = when (data.direction) {
+            NavDirection.NONE -> getString(R.string.nav_waiting)
+            else              -> data.instructionText
+        }
+        binding.tvNavDistance?.text = data.distanceText
 
-        // Speed widget
-        val speedText = if (data.speed > 0) "${data.speed}" else "--"
-        binding.tvSpeed.text = speedText
-        binding.tvSpeedUnit.text = data.speedUnit
+        // Speed (Roboto Mono, color by warning level)
+        val displaySpeed = UnitConverter.formatSpeed(data.speed, repo.useKph)
+        binding.tvSpeed?.text = if (data.speed > 0) displaySpeed else "--"
+        binding.tvSpeedUnit?.text = UnitConverter.unitLabel(repo.useKph)
 
-        // Bottom widgets
-        binding.tvEta.text = data.eta
-        binding.tvDistanceRemaining.text = data.distanceRemaining
+        // Speed limit
+        binding.tvSpeedLimit?.text = data.speedLimit?.toString() ?: getString(R.string.speed_limit_unknown)
+
+        // Trip widgets
+        binding.tvEta?.text = data.eta
+        binding.tvRemaining?.text = data.distanceRemaining
     }
 
     private fun updateBleIndicator(state: ConnectionState) {
-        val (colorRes, label) = when (state) {
-            ConnectionState.CONNECTED    -> Pair(R.color.status_connected, "●")
+        val colorRes = when (state) {
+            ConnectionState.CONNECTED    -> R.color.ble_connected
             ConnectionState.CONNECTING,
-            ConnectionState.RECONNECTING -> Pair(R.color.status_connecting, "●")
-            ConnectionState.SCANNING,
-            ConnectionState.DISCONNECTED -> Pair(R.color.status_disconnected, "●")
+            ConnectionState.RECONNECTING -> R.color.ble_scanning
+            else                         -> R.color.ble_disconnected
         }
-        binding.tvBleIndicator.setTextColor(ContextCompat.getColor(this, colorRes))
-        binding.tvBleIndicator.text = label
-        binding.tvBleLabel.text = state.displayName
+        binding.tvBleIndicator?.setTextColor(ContextCompat.getColor(this, colorRes))
+        binding.tvBleLabel?.text = state.name
+    }
+
+    private fun updateAccIndicator(active: Boolean) {
+        val colorRes = if (active) R.color.acc_active else R.color.acc_disabled
+        binding.tvAccIndicator?.setTextColor(ContextCompat.getColor(this, colorRes))
+        binding.bannerAccess?.visibility = if (active) View.GONE else View.VISIBLE
     }
 
     private fun updateSpeedWarning(show: Boolean) {
-        binding.layoutSpeedWarning.visibility = if (show) View.VISIBLE else View.GONE
-        if (show) {
-            binding.tvSpeed.setTextColor(ContextCompat.getColor(this, R.color.warning_red))
-        } else {
-            binding.tvSpeed.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+        binding.layoutSpeedWarning?.visibility = if (show) View.VISIBLE else View.GONE
+        val speedColor = when {
+            !show -> R.color.speed_normal
+            else  -> R.color.speed_danger
+        }
+        binding.tvSpeed?.setTextColor(ContextCompat.getColor(this, speedColor))
+
+        // TEST: Speed warning vibrates at correct threshold
+        if (show && repo.vibrateOnWarning) {
+            @Suppress("DEPRECATION")
+            (getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)?.vibrate(300L)
         }
     }
 
     private fun updateNotificationBanner(notification: Pair<String, String>?) {
         if (notification == null) {
-            binding.layoutNotification.visibility = View.GONE
+            binding.layoutNotification?.visibility = View.GONE
         } else {
-            binding.tvNotificationTitle.text = notification.first
-            binding.tvNotificationText.text = notification.second
-            binding.layoutNotification.visibility = View.VISIBLE
+            binding.tvNotificationTitle?.text = notification.first
+            binding.tvNotificationText?.text = notification.second
+            binding.layoutNotification?.visibility = View.VISIBLE
         }
+    }
+
+    // ── U-turn blink ───────────────────────────────────────────────────────
+
+    private var blinkRunnable: Runnable? = null
+
+    private fun startBlinkAnimation() {
+        stopBlinkAnimation()
+        var visible = true
+        blinkRunnable = object : Runnable {
+            override fun run() {
+                binding.ivNavArrow?.alpha = if (visible) 1f else 0.15f
+                visible = !visible
+                binding.ivNavArrow?.postDelayed(this, 300)
+            }
+        }
+        binding.ivNavArrow?.post(blinkRunnable)
+    }
+
+    private fun stopBlinkAnimation() {
+        blinkRunnable?.let { binding.ivNavArrow?.removeCallbacks(it) }
+        blinkRunnable = null
+        binding.ivNavArrow?.alpha = 1f
+    }
+
+    // ── Log dialog ─────────────────────────────────────────────────────────
+
+    private fun showLogDialog() {
+        val log = com.wildtribe.drive.utils.DebugLogger.getLog()
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Debug Log")
+            .setMessage(if (log.isEmpty()) "No log entries yet." else log.takeLast(3000))
+            .setPositiveButton("Close", null)
+            .setNeutralButton("Export") { _, _ -> exportLog() }
+            .show()
+    }
+
+    private fun exportLog() {
+        val file = com.wildtribe.drive.utils.DebugLogger.exportToFile(this) ?: return
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            this, "${packageName}.fileprovider", file
+        )
+        startActivity(Intent.createChooser(
+            Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }, "Share Debug Log"
+        ))
     }
 }

@@ -20,34 +20,38 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.wildtribe.drive.R
+import com.wildtribe.drive.adapter.DeviceAdapter
 import com.wildtribe.drive.ble.BleConstants
 import com.wildtribe.drive.ble.BleService
+import com.wildtribe.drive.data.RideRepository
 import com.wildtribe.drive.databinding.ActivityBluetoothScanBinding
 import com.wildtribe.drive.model.BleDevice
 import com.wildtribe.drive.model.ConnectionState
-import com.wildtribe.drive.adapter.DeviceAdapter
 import com.wildtribe.drive.ui.dashboard.DashboardActivity
-import com.wildtribe.drive.util.LogHelper
-import com.wildtribe.drive.util.PermissionHelper
+import com.wildtribe.drive.utils.DebugLogger
+import com.wildtribe.drive.utils.PermissionHelper
+import com.wildtribe.drive.viewmodel.BluetoothViewModel
 import kotlinx.coroutines.launch
 
 /**
- * Bluetooth scan and connection screen.
+ * Garmin-style Bluetooth scan and connection screen.
  *
- * Flow:
- *  1. Request BLE permissions
- *  2. User taps "SCAN FOR MOTOROUND DEVICE"
- *  3. Devices appear in real-time list
- *  4. User taps "CONNECT" on a device
- *  5. App connects, saves device, navigates to Dashboard
+ * Features:
+ * - Animated scanning pulse (concentric circles)
+ * - MotoRound devices highlighted with green left border
+ * - "Enable Maps Reading" button if Accessibility Service not granted
+ * - Permission dialog explaining WHY before opening settings
+ *
+ * TEST: BLE connects to device named "MotoRound"
+ * TEST: Accessibility service starts after permission granted
  */
 class BluetoothScanActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBluetoothScanBinding
-    private val viewModel: com.wildtribe.drive.viewmodel.BluetoothViewModel by viewModels()
+    private val viewModel: BluetoothViewModel by viewModels()
     private lateinit var deviceAdapter: DeviceAdapter
+    private lateinit var repo: RideRepository
 
-    // BleService binding
     private var bleService: BleService? = null
     private var serviceBound = false
 
@@ -57,45 +61,39 @@ class BluetoothScanActivity : AppCompatActivity() {
             bleService = localBinder.getService()
             viewModel.attachBleManager(localBinder.getService().bleManager)
             observeViewModel()
-            // Auto-reconnect if a device was saved previously
+            // Auto-reconnect if a device was previously saved
             if (viewModel.hasSavedDevice()) {
-                val savedAddress = viewModel.getSavedDeviceAddress() ?: return
-                val savedName = viewModel.getSavedDeviceName() ?: "MotoRound"
-                updateStatusBanner("Reconnecting to $savedName…", ConnectionState.RECONNECTING)
-                viewModel.connectToDevice(savedAddress, savedName)
+                val address = viewModel.getSavedDeviceAddress() ?: return
+                val name2 = viewModel.getSavedDeviceName() ?: "MotoRound"
+                updateStatusBanner("Reconnecting to $name2…", ConnectionState.RECONNECTING)
+                viewModel.connectToDevice(address, name2)
             }
         }
-
         override fun onServiceDisconnected(name: ComponentName?) {
             bleService = null
             serviceBound = false
         }
     }
 
-    // Permission launcher
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { results ->
-        val allGranted = results.values.all { it }
-        if (allGranted) {
-            bindBleService()
-        } else {
-            showPermissionRationale()
-        }
+        if (results.values.all { it }) bindBleService()
+        else showPermissionRationale()
     }
 
-    // Bluetooth state receiver
     private val bluetoothStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)) {
-                BluetoothAdapter.STATE_OFF -> showBluetoothOffBanner()
-                BluetoothAdapter.STATE_ON  -> hideBleOffBanner()
+                BluetoothAdapter.STATE_OFF -> binding.layoutBluetoothOff.visibility = View.VISIBLE
+                BluetoothAdapter.STATE_ON  -> binding.layoutBluetoothOff.visibility = View.GONE
             }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        repo = RideRepository(this)
         binding = ActivityBluetoothScanBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -103,87 +101,99 @@ class BluetoothScanActivity : AppCompatActivity() {
         setupClickListeners()
         checkPermissionsAndInit()
         registerReceiver(bluetoothStateReceiver, IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED))
+
+        // Show accessibility button if not yet granted
+        updateAccessibilityButton()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateAccessibilityButton()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(bluetoothStateReceiver)
+        try { unregisterReceiver(bluetoothStateReceiver) } catch (_: Exception) {}
         if (serviceBound) {
-            unbindService(serviceConnection)
+            try { unbindService(serviceConnection) } catch (_: Exception) {}
             serviceBound = false
         }
     }
 
-    // ─── Setup ────────────────────────────────────────────────────────────────
+    // ── Setup ──────────────────────────────────────────────────────────────
 
     private fun setupRecyclerView() {
         deviceAdapter = DeviceAdapter { device -> onDeviceConnectClicked(device) }
         binding.rvDevices.adapter = deviceAdapter
-        binding.rvDevices.layoutManager =
-            androidx.recyclerview.widget.LinearLayoutManager(this)
+        binding.rvDevices.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
     }
 
     private fun setupClickListeners() {
         binding.btnScan.setOnClickListener {
             if (!PermissionHelper.hasBlePermissions(this)) {
-                requestBlePermissions()
-                return@setOnClickListener
+                requestBlePermissions(); return@setOnClickListener
             }
             startScan()
         }
-
-        binding.btnGoToDashboard.setOnClickListener {
-            navigateToDashboard()
-        }
-
-        binding.btnOpenSettings.setOnClickListener {
+        binding.btnGoToDashboard.setOnClickListener { navigateToDashboard() }
+        binding.btnOpenSettings?.setOnClickListener {
             startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+        }
+        binding.btnEnableAccessibility?.setOnClickListener {
+            showAccessibilityPermissionDialog()
         }
     }
 
     private fun checkPermissionsAndInit() {
-        if (PermissionHelper.hasBlePermissions(this)) {
-            bindBleService()
-        } else {
-            requestBlePermissions()
-        }
+        if (PermissionHelper.hasBlePermissions(this)) bindBleService()
+        else requestBlePermissions()
     }
 
     private fun requestBlePermissions() {
         permissionLauncher.launch(PermissionHelper.blePermissions())
     }
 
-    // ─── Service Binding ──────────────────────────────────────────────────────
+    private fun updateAccessibilityButton() {
+        val enabled = PermissionHelper.isAccessibilityServiceEnabled(this)
+        binding.btnEnableAccessibility?.visibility = if (enabled) View.GONE else View.VISIBLE
+    }
+
+    // ── Accessibility Permission Dialog ────────────────────────────────────
+
+    private fun showAccessibilityPermissionDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.acc_dialog_title))
+            .setMessage(getString(R.string.acc_dialog_message))
+            .setPositiveButton(getString(R.string.acc_dialog_btn_open)) { _, _ ->
+                PermissionHelper.openAccessibilitySettings(this)
+            }
+            .setNegativeButton(getString(R.string.acc_dialog_btn_skip), null)
+            .show()
+    }
+
+    // ── Service Binding ────────────────────────────────────────────────────
 
     private fun bindBleService() {
-        val intent = BleService.buildConnectIntent(this)
-        startForegroundService(intent)
-        bindService(
-            Intent(this, BleService::class.java),
-            serviceConnection,
-            Context.BIND_AUTO_CREATE
-        )
+        startForegroundService(BleService.buildConnectIntent(this))
+        bindService(Intent(this, BleService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
         serviceBound = true
     }
 
-    // ─── Scan ─────────────────────────────────────────────────────────────────
+    // ── Scan ───────────────────────────────────────────────────────────────
 
     private fun startScan() {
         deviceAdapter.submitList(emptyList())
         binding.tvEmptyState.text = getString(R.string.scanning_hint)
         binding.tvEmptyState.visibility = View.VISIBLE
-        binding.progressScan.visibility = View.VISIBLE
         binding.btnScan.isEnabled = false
         viewModel.startScan()
 
-        // Re-enable scan button after scan window
         binding.btnScan.postDelayed({
             binding.btnScan.isEnabled = true
-            binding.progressScan.visibility = View.GONE
         }, BleConstants.SCAN_PERIOD_MS)
     }
 
-    // ─── ViewModel Observers ──────────────────────────────────────────────────
+    // ── ViewModel Observers ────────────────────────────────────────────────
 
     private fun observeViewModel() {
         lifecycleScope.launch {
@@ -204,7 +214,6 @@ class BluetoothScanActivity : AppCompatActivity() {
                         when (state) {
                             ConnectionState.CONNECTED -> {
                                 binding.btnGoToDashboard.visibility = View.VISIBLE
-                                // Auto-navigate after 1 second
                                 binding.root.postDelayed({ navigateToDashboard() }, 1_000L)
                             }
                             else -> binding.btnGoToDashboard.visibility = View.GONE
@@ -215,42 +224,32 @@ class BluetoothScanActivity : AppCompatActivity() {
         }
     }
 
-    // ─── Device Connection ────────────────────────────────────────────────────
+    // ── Device Connection ──────────────────────────────────────────────────
 
     private fun onDeviceConnectClicked(device: BleDevice) {
-        LogHelper.d("BtScanActivity", "User selected: ${device.name} (${device.address})")
+        DebugLogger.log("BtScan", "User selected: ${device.name} (${device.address})")
         updateStatusBanner("Connecting to ${device.name}…", ConnectionState.CONNECTING)
         viewModel.connectToDevice(device.address, device.name)
     }
-
-    // ─── Navigation ───────────────────────────────────────────────────────────
 
     private fun navigateToDashboard() {
         startActivity(Intent(this, DashboardActivity::class.java))
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
-    // ─── UI Helpers ───────────────────────────────────────────────────────────
+    // ── UI Helpers ─────────────────────────────────────────────────────────
 
     private fun updateStatusBanner(text: String, state: ConnectionState) {
         binding.tvConnectionStatus.text = text
-        val (dotColor, textColor) = when (state) {
-            ConnectionState.CONNECTED    -> Pair(R.color.status_connected, R.color.status_connected)
+        val colorRes = when (state) {
+            ConnectionState.CONNECTED    -> R.color.ble_connected
             ConnectionState.CONNECTING,
-            ConnectionState.RECONNECTING -> Pair(R.color.status_connecting, R.color.status_connecting)
-            ConnectionState.SCANNING     -> Pair(R.color.orange_primary, R.color.text_secondary)
-            ConnectionState.DISCONNECTED -> Pair(R.color.status_disconnected, R.color.text_secondary)
+            ConnectionState.RECONNECTING -> R.color.ble_scanning
+            ConnectionState.SCANNING     -> R.color.garmin_amber
+            ConnectionState.DISCONNECTED -> R.color.ble_disconnected
         }
-        binding.viewStatusDot.setBackgroundColor(ContextCompat.getColor(this, dotColor))
-        binding.tvConnectionStatus.setTextColor(ContextCompat.getColor(this, textColor))
-    }
-
-    private fun showBluetoothOffBanner() {
-        binding.layoutBluetoothOff.visibility = View.VISIBLE
-    }
-
-    private fun hideBleOffBanner() {
-        binding.layoutBluetoothOff.visibility = View.GONE
+        binding.viewStatusDot.setBackgroundColor(ContextCompat.getColor(this, colorRes))
+        binding.tvConnectionStatus.setTextColor(ContextCompat.getColor(this, colorRes))
     }
 
     private fun showPermissionRationale() {

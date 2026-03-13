@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.provider.Settings
@@ -16,24 +15,27 @@ import androidx.core.content.FileProvider
 import com.wildtribe.drive.R
 import com.wildtribe.drive.ble.BleConstants
 import com.wildtribe.drive.ble.BleService
+import com.wildtribe.drive.data.RideRepository
 import com.wildtribe.drive.databinding.ActivitySettingsBinding
-import com.wildtribe.drive.util.LogHelper
-import com.wildtribe.drive.util.PreferenceHelper
+import com.wildtribe.drive.utils.DebugLogger
+import com.wildtribe.drive.utils.PermissionHelper
+import com.wildtribe.drive.utils.UnitConverter
 import com.wildtribe.drive.util.ReviewManager
 
 /**
- * Settings screen with:
- *  - Device management (reconnect / forget)
- *  - Speed unit toggle (km/h / mph)
- *  - Speed warning limit slider
- *  - Phone notification toggle
- *  - Tasker setup guide
- *  - Rider tips
- *  - Feedback / log export
+ * Garmin-style Settings screen.
+ *
+ * Sections: DEVICE | UNITS | WARNINGS | ACCESSIBILITY | DISPLAY | NOTIFICATIONS | DEBUG | ABOUT
+ *
+ * FIX 2: Auto-converts stored speed warning limit when unit changes
+ * FIX 7: Screen timeout setting persisted for Dashboard
+ *
+ * TEST: Unit conversion: 100 km/h warning → 62 mph after unit switch
  */
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
+    private lateinit var repo: RideRepository
 
     private var bleService: BleService? = null
     private val serviceConnection = object : ServiceConnection {
@@ -45,6 +47,7 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        repo = RideRepository(this)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -53,74 +56,79 @@ class SettingsActivity : AppCompatActivity() {
             title = getString(R.string.title_settings)
         }
 
-        bindBleService()
+        bindService(Intent(this, BleService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
         loadCurrentSettings()
         setupClickListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateAccessibilityStatus()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        if (bleService != null) unbindService(serviceConnection)
+        if (bleService != null) try { unbindService(serviceConnection) } catch (_: Exception) {}
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
-    }
+    override fun onSupportNavigateUp(): Boolean { finish(); return true }
 
-    // ─── Service ──────────────────────────────────────────────────────────────
-
-    private fun bindBleService() {
-        bindService(
-            Intent(this, BleService::class.java),
-            serviceConnection,
-            Context.BIND_AUTO_CREATE
-        )
-    }
-
-    // ─── Load Settings ────────────────────────────────────────────────────────
+    // ── Load Settings ──────────────────────────────────────────────────────
 
     private fun loadCurrentSettings() {
-        // Saved device
-        val deviceName = PreferenceHelper.getSavedDeviceName(this)
-        val deviceAddress = PreferenceHelper.getSavedDeviceAddress(this)
+        // ── DEVICE section ────────────────────────────────────────────────
+        val deviceName = repo.savedDeviceName
+        val deviceAddress = repo.savedDeviceAddress
         binding.tvSavedDevice.text = if (deviceName != null)
             "$deviceName\n$deviceAddress"
         else getString(R.string.no_device_saved)
 
-        // Speed unit
-        val unit = PreferenceHelper.getSpeedUnit(this)
-        binding.toggleSpeedUnit.check(
-            if (unit == "km/h") R.id.btnKmh else R.id.btnMph
+        // ── UNITS section ─────────────────────────────────────────────────
+        binding.toggleSpeedUnit?.check(
+            if (repo.useKph) R.id.btnKmh else R.id.btnMph
         )
 
-        // Speed warning
-        val limit = PreferenceHelper.getSpeedWarningLimit(this)
-        binding.seekSpeedWarning.progress = limit
-        binding.tvSpeedWarningValue.text = "$limit ${PreferenceHelper.getSpeedUnit(this)}"
+        // ── WARNINGS section ──────────────────────────────────────────────
+        val limit = repo.speedWarningLimit
+        binding.seekSpeedWarning?.progress = limit
+        binding.tvSpeedWarningValue?.text = "$limit ${if (repo.useKph) "km/h" else "mph"}"
 
-        // Notifications
-        binding.switchNotifications.isChecked = PreferenceHelper.isNotificationsEnabled(this)
+        // ── ACCESSIBILITY section ──────────────────────────────────────────
+        updateAccessibilityStatus()
 
-        // Ride count
-        binding.tvRideCount.text = getString(R.string.rides_completed, PreferenceHelper.getRideCount(this))
+        // ── DISPLAY section ───────────────────────────────────────────────
+        // Screen timeout radio/toggle (if view exists)
+
+        // ── NOTIFICATIONS section ─────────────────────────────────────────
+        binding.switchNotifications?.isChecked = repo.notificationsEnabled
+
+        // ── ABOUT section ─────────────────────────────────────────────────
+        try {
+            val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+            binding.tvVersionName?.text = versionName
+        } catch (_: Exception) {}
+        binding.tvRideCount?.text = getString(R.string.rides_completed, repo.rideCount)
     }
 
-    // ─── Click Listeners ──────────────────────────────────────────────────────
+    private fun updateAccessibilityStatus() {
+        val enabled = PermissionHelper.isAccessibilityServiceEnabled(this)
+        binding.tvAccStatus?.text = if (enabled)
+            getString(R.string.acc_status_active)
+        else getString(R.string.acc_status_inactive)
+    }
+
+    // ── Click Listeners ────────────────────────────────────────────────────
 
     private fun setupClickListeners() {
 
-        // ── Device Management ─────────────────────────────────────────────────
-
+        // ── DEVICE ────────────────────────────────────────────────────────
         binding.btnReconnectDevice.setOnClickListener {
-            val address = PreferenceHelper.getSavedDeviceAddress(this)
+            val address = repo.savedDeviceAddress
             if (address != null) {
                 bleService?.connectToDevice(address)
                     ?: startForegroundService(BleService.buildConnectIntent(this, address))
                 toast(getString(R.string.reconnecting))
-            } else {
-                toast(getString(R.string.no_device_saved))
-            }
+            } else toast(getString(R.string.no_device_saved))
         }
 
         binding.btnForgetDevice.setOnClickListener {
@@ -128,7 +136,7 @@ class SettingsActivity : AppCompatActivity() {
                 .setTitle(R.string.forget_device_title)
                 .setMessage(R.string.forget_device_message)
                 .setPositiveButton(R.string.forget) { _, _ ->
-                    PreferenceHelper.forgetDevice(this)
+                    repo.forgetDevice()
                     bleService?.bleManager?.disconnect()
                     binding.tvSavedDevice.text = getString(R.string.no_device_saved)
                     toast(getString(R.string.device_forgotten))
@@ -137,83 +145,129 @@ class SettingsActivity : AppCompatActivity() {
                 .show()
         }
 
-        // ── Speed Unit ────────────────────────────────────────────────────────
+        // ── UNITS (FIX 2) ─────────────────────────────────────────────────
+        binding.toggleSpeedUnit?.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val switchingToKph = checkedId == R.id.btnKmh
+            val currentLimit = repo.speedWarningLimit
 
-        binding.toggleSpeedUnit.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) {
-                val unit = if (checkedId == R.id.btnKmh) "km/h" else "mph"
-                PreferenceHelper.saveSpeedUnit(this, unit)
-                // Adjust default warning limit when switching units
-                if (unit == "mph") {
-                    binding.seekSpeedWarning.max = 120
-                    binding.seekSpeedWarning.progress = BleConstants.DEFAULT_SPEED_WARNING_MPH
-                } else {
-                    binding.seekSpeedWarning.max = 200
-                    binding.seekSpeedWarning.progress = BleConstants.DEFAULT_SPEED_WARNING_KMH
-                }
-            }
+            // FIX 2: Auto-convert stored warning limit when unit changes
+            val convertedLimit = UnitConverter.convertWarningLimit(
+                currentLimit,
+                switchingToKph = switchingToKph
+            )
+            repo.useKph = switchingToKph
+            repo.speedWarningLimit = convertedLimit
+
+            // Update slider to reflect converted value
+            binding.seekSpeedWarning?.max = if (switchingToKph) 200 else 120
+            binding.seekSpeedWarning?.progress = convertedLimit
+            binding.tvSpeedWarningValue?.text = "$convertedLimit ${if (switchingToKph) "km/h" else "mph"}"
+            DebugLogger.log("SETTINGS", "Unit→${if (switchingToKph) "kph" else "mph"} limit=$convertedLimit")
         }
 
-        // ── Speed Warning Slider ──────────────────────────────────────────────
-
-        binding.seekSpeedWarning.max = 200
-        binding.seekSpeedWarning.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+        // ── WARNINGS ──────────────────────────────────────────────────────
+        binding.seekSpeedWarning?.max = if (repo.useKph) 200 else 120
+        binding.seekSpeedWarning?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val unit = PreferenceHelper.getSpeedUnit(this@SettingsActivity)
-                binding.tvSpeedWarningValue.text = "$progress $unit"
+                val unit = if (repo.useKph) "km/h" else "mph"
+                binding.tvSpeedWarningValue?.text = "$progress $unit"
             }
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                PreferenceHelper.saveSpeedWarningLimit(this@SettingsActivity, seekBar?.progress ?: 100)
+                repo.speedWarningLimit = seekBar?.progress ?: 100
             }
         })
 
-        // ── Notifications ─────────────────────────────────────────────────────
-
-        binding.switchNotifications.setOnCheckedChangeListener { _, isChecked ->
-            PreferenceHelper.setNotificationsEnabled(this, isChecked)
-            if (isChecked) checkNotificationListenerPermission()
+        binding.switchVibrate?.setOnCheckedChangeListener { _, checked ->
+            repo.vibrateOnWarning = checked
         }
 
-        binding.btnGrantNotifAccess.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        // ── ACCESSIBILITY ─────────────────────────────────────────────────
+        binding.btnEnableAcc?.setOnClickListener {
+            if (PermissionHelper.isAccessibilityServiceEnabled(this)) {
+                PermissionHelper.openAccessibilitySettings(this)
+            } else {
+                showAccessibilityDialog()
+            }
         }
 
-        // ── Tasker Guide ──────────────────────────────────────────────────────
-
-        binding.btnTaskerGuide.setOnClickListener {
-            showTaskerGuideDialog()
+        // ── DISPLAY (FIX 7) ───────────────────────────────────────────────
+        binding.btnScreenAlwaysOn?.setOnClickListener {
+            repo.screenTimeout = "always_on"
+            toast("Screen: Always On")
+        }
+        binding.btnScreen10Min?.setOnClickListener {
+            repo.screenTimeout = "10_min"
+            toast("Screen: 10 Minutes")
+        }
+        binding.btnScreenSystem?.setOnClickListener {
+            repo.screenTimeout = "system"
+            toast("Screen: System Default")
         }
 
-        // ── Rider Tips ────────────────────────────────────────────────────────
-
-        binding.btnRiderTips.setOnClickListener {
-            showRiderTipsDialog()
+        // ── NOTIFICATIONS ─────────────────────────────────────────────────
+        binding.switchNotifications?.setOnCheckedChangeListener { _, isChecked ->
+            repo.notificationsEnabled = isChecked
+            if (isChecked && !PermissionHelper.isNotificationListenerEnabled(this)) {
+                showNotificationPermissionDialog()
+            }
+        }
+        binding.btnGrantNotifAccess?.setOnClickListener {
+            PermissionHelper.openNotificationListenerSettings(this)
         }
 
-        // ── Feedback ──────────────────────────────────────────────────────────
-
-        binding.btnRateApp.setOnClickListener {
-            ReviewManager.openStoreListing(this)
+        // ── DEBUG ─────────────────────────────────────────────────────────
+        binding.btnExportLogs?.setOnClickListener { exportLogs() }
+        binding.btnClearLogs?.setOnClickListener {
+            DebugLogger.clear()
+            toast("Log cleared")
+        }
+        binding.btnViewLogs?.setOnClickListener {
+            val log = DebugLogger.getLog()
+            AlertDialog.Builder(this)
+                .setTitle("Debug Log")
+                .setMessage(if (log.isEmpty()) "No entries." else log.takeLast(3000))
+                .setPositiveButton("Close", null)
+                .show()
         }
 
-        binding.btnSendFeedback.setOnClickListener {
-            ReviewManager.sendFeedbackEmail(this)
-        }
-
-        binding.btnReportIssue.setOnClickListener {
-            ReviewManager.sendFeedbackEmail(this)
-        }
-
-        binding.btnExportLogs.setOnClickListener {
-            exportLogs()
-        }
+        // ── ABOUT ─────────────────────────────────────────────────────────
+        binding.btnRateApp?.setOnClickListener { ReviewManager.openStoreListing(this) }
+        binding.btnTaskerGuide?.setOnClickListener { showTaskerGuideDialog() }
     }
 
-    // ─── Dialogs ──────────────────────────────────────────────────────────────
+    // ── Dialogs ────────────────────────────────────────────────────────────
+
+    private fun showAccessibilityDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.acc_dialog_title))
+            .setMessage(getString(R.string.acc_dialog_message))
+            .setPositiveButton(getString(R.string.acc_dialog_btn_open)) { _, _ ->
+                PermissionHelper.openAccessibilitySettings(this)
+            }
+            .setNegativeButton(getString(R.string.acc_dialog_btn_skip), null)
+            .show()
+    }
+
+    private fun showNotificationPermissionDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Notification Access Required")
+            .setMessage("To show phone notifications on your MotoRound display, Wild Tribe Drive needs Notification Access.")
+            .setPositiveButton("Grant Access") { _, _ ->
+                PermissionHelper.openNotificationListenerSettings(this)
+            }
+            .setNegativeButton(R.string.cancel) { _, _ ->
+                repo.notificationsEnabled = false
+                binding.switchNotifications?.isChecked = false
+            }
+            .show()
+    }
 
     private fun showTaskerGuideDialog() {
-        val guide = """
+        AlertDialog.Builder(this)
+            .setTitle("Tasker Integration Guide")
+            .setMessage("""
 TASKER SETUP GUIDE
 
 1. Install Tasker from the Play Store
@@ -224,10 +278,7 @@ TASKER SETUP GUIDE
 
 4. Configure:
    Action:  com.wildtribe.drive.SEND_COMMAND
-   Package: com.wildtribe.drive
    Extra:   command: NAV:R:300m
-
-5. Trigger the task from your Google Maps profile
 
 EXAMPLE COMMANDS:
 • NAV:R:300m   → Turn right in 300m
@@ -238,84 +289,28 @@ EXAMPLE COMMANDS:
 • SPD:65       → Speed update 65 km/h
 • TRP:45km:1h23m:18:30 → Trip info
 • CLR          → Clear display
-
-For more help visit:
-wildtribedrive.com/tasker-setup
-        """.trimIndent()
-
-        AlertDialog.Builder(this)
-            .setTitle("Tasker Integration Guide")
-            .setMessage(guide)
+            """.trimIndent())
             .setPositiveButton("Got it", null)
             .show()
     }
 
-    private fun showRiderTipsDialog() {
-        val tips = arrayOf(
-            "🏍 Mount phone securely on handlebar",
-            "🔋 Disable battery optimization for Wild Tribe Drive",
-            "📡 Enable Bluetooth and GPS before riding",
-            "⚡ Ensure MotoRound device is fully charged",
-            "📱 Ensure Tasker automation is active",
-            "☀️ Increase screen brightness for visibility",
-            "🔄 Keep the app updated for best performance",
-            "🔇 Enable Do Not Disturb during rides",
-            "🌐 Test BLE connection before long rides",
-            "📶 Keep phone close to MotoRound device"
-        )
-
-        AlertDialog.Builder(this)
-            .setTitle("Rider Tips")
-            .setItems(tips, null)
-            .setPositiveButton("Close", null)
-            .show()
-    }
-
-    // ─── Notification Access ──────────────────────────────────────────────────
-
-    private fun checkNotificationListenerPermission() {
-        val listeners = Settings.Secure.getString(
-            contentResolver, "enabled_notification_listeners"
-        ) ?: ""
-        val hasAccess = listeners.contains(packageName)
-        if (!hasAccess) {
-            AlertDialog.Builder(this)
-                .setTitle("Notification Access Required")
-                .setMessage("To show phone notifications on your MotoRound display, Wild Tribe Drive needs Notification Access. Tap Grant to enable it.")
-                .setPositiveButton("Grant Access") { _, _ ->
-                    startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-                }
-                .setNegativeButton(R.string.cancel) { _, _ ->
-                    PreferenceHelper.setNotificationsEnabled(this, false)
-                    binding.switchNotifications.isChecked = false
-                }
-                .show()
-        }
-    }
-
-    // ─── Log Export ───────────────────────────────────────────────────────────
+    // ── Log Export ─────────────────────────────────────────────────────────
 
     private fun exportLogs() {
-        try {
-            val externalDir = getExternalFilesDir(null) ?: cacheDir
-            val logFile = LogHelper.writeLogsToFile(externalDir)
-            val uri = FileProvider.getUriForFile(
-                this, "$packageName.fileprovider", logFile
-            )
-            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        val file = DebugLogger.exportToFile(this) ?: run {
+            toast("Failed to export log")
+            return
+        }
+        val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+        startActivity(Intent.createChooser(
+            Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "Wild Tribe Drive Debug Logs")
+                putExtra(Intent.EXTRA_SUBJECT, "Wild Tribe Drive Debug Log")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            startActivity(Intent.createChooser(shareIntent, "Share BLE Logs"))
-        } catch (e: Exception) {
-            LogHelper.e("Settings", "Failed to export logs", e)
-            toast("Failed to export logs: ${e.message}")
-        }
+            }, "Share Debug Log"
+        ))
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 }
