@@ -12,11 +12,9 @@
         android:pathData="M50,5 C32,5 18,19 18,37 C18,55 50,95 50,95 C50,95 82,55 82,37 C82,19 68,5 50,5 Z" />
 
     <!-- Inner circle (white) -->
-    <circle
+    <path
         android:fillColor="#0D0D0D"
-        android:cx="50"
-        android:cy="37"
-        android:r="12" />
+        android:pathData="M38,37 A12,12 0 1,0 62,37 A12,12 0 1,0 38,37 Z" />
 
     <!-- Checkmark inside -->
     <path
