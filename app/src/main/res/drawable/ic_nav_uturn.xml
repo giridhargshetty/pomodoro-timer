@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <!-- U-turn arc -->
+    <path
+        android:pathData="M 50,54 L 50,30 A 14,14 0 0 0 22,30 L 22,54"
+        android:strokeColor="@color/nav_uturn"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <!-- Arrowhead on left stem going down -->
+    <path
+        android:pathData="M 14,46 L 22,58 L 30,46"
+        android:strokeColor="@color/nav_uturn"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+</vector>

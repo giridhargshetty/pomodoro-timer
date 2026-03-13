@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation arrow: Turn Right -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Upward shaft -->
+    <path
+        android:fillColor="#FF6B00"
+        android:pathData="M42,70 L42,35 L35,35 L50,10 L65,35 L58,35 L58,70 Z" />
+
+    <!-- Horizontal arm turning right -->
+    <path
+        android:fillColor="#FF6B00"
+        android:pathData="M58,42 L80,42 L80,35 L95,50 L80,65 L80,58 L58,58 Z" />
+
+</vector>

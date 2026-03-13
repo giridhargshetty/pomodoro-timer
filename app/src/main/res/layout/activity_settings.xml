@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/garmin_bg_primary"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             DEVICE
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_device"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_saved_device"
+                style="@style/TextStyle.GarminLabel" />
+
+            <TextView
+                android:id="@+id/tvSavedDevice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/no_device_saved"
+                android:textSize="14sp"
+                android:textColor="@color/garmin_white"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnReconnectDevice"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/btn_reconnect"
+                    style="@style/Widget.GarminButton.Primary"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="4dp" />
+
+                <Button
+                    android:id="@+id/btnForgetDevice"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="@string/btn_forget_device"
+                    style="@style/Widget.GarminButton.Danger"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             UNITS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UNITS"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_speed_unit"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_1"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleSpeedUnit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true"
+                app:selectionRequired="true">
+
+                <Button
+                    android:id="@+id/btnKmh"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="km/h"
+                    android:textColor="@color/garmin_white" />
+
+                <Button
+                    android:id="@+id/btnMph"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="mph"
+                    android:textColor="@color/garmin_white" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             WARNINGS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="WARNINGS"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/label_speed_warning"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_1" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp">
+
+                <SeekBar
+                    android:id="@+id/seekSpeedWarning"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="200"
+                    android:progress="100"
+                    android:progressTint="@color/garmin_amber"
+                    android:thumbTint="@color/garmin_amber" />
+
+                <TextView
+                    android:id="@+id/tvSpeedWarningValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="100 km/h"
+                    android:textSize="14sp"
+                    android:textColor="@color/garmin_amber"
+                    android:textStyle="bold"
+                    android:layout_marginStart="10dp"
+                    android:minWidth="72dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="VIBRATE ON WARNING"
+                    style="@style/TextStyle.GarminLabel" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchVibrate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             ACCESSIBILITY
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ACCESSIBILITY"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="MAPS READING STATUS"
+                    style="@style/TextStyle.GarminLabel" />
+
+                <TextView
+                    android:id="@+id/tvAccStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/acc_status_inactive"
+                    android:textSize="12sp"
+                    android:textColor="@color/garmin_red"
+                    android:fontFamily="sans-serif-condensed"
+                    android:textAllCaps="true" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnEnableAcc"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/acc_dialog_btn_open"
+                style="@style/Widget.GarminButton.Primary"
+                android:layout_marginTop="10dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             DISPLAY
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DISPLAY"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SCREEN TIMEOUT"
+                style="@style/TextStyle.GarminLabel"
+                android:layout_marginBottom="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnScreenAlwaysOn"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="ALWAYS ON"
+                    style="@style/Widget.GarminButton"
+                    android:textSize="10sp"
+                    android:layout_marginEnd="2dp" />
+
+                <Button
+                    android:id="@+id/btnScreen10Min"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="10 MIN"
+                    style="@style/Widget.GarminButton"
+                    android:textSize="10sp"
+                    android:layout_marginHorizontal="2dp" />
+
+                <Button
+                    android:id="@+id/btnScreenSystem"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:text="SYSTEM"
+                    style="@style/Widget.GarminButton"
+                    android:textSize="10sp"
+                    android:layout_marginStart="2dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             NOTIFICATIONS
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_notifications"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_notifications"
+                    android:textSize="13sp"
+                    android:textColor="@color/garmin_gray_1" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchNotifications"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnGrantNotifAccess"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/btn_grant_notif_access"
+                style="@style/Widget.GarminButton"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             DEBUG
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DEBUG"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <Button
+                android:id="@+id/btnViewLogs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="VIEW LOGS"
+                style="@style/Widget.GarminButton" />
+
+            <Button
+                android:id="@+id/btnExportLogs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="@string/btn_export_logs"
+                style="@style/Widget.GarminButton"
+                android:layout_marginTop="6dp" />
+
+            <Button
+                android:id="@+id/btnClearLogs"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="CLEAR LOGS"
+                style="@style/Widget.GarminButton.Danger"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             TASKER
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/section_tasker"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <Button
+                android:id="@+id/btnTaskerGuide"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="@string/btn_tasker_guide"
+                style="@style/Widget.GarminButton" />
+
+        </LinearLayout>
+
+        <!-- ══════════════════════════════════════════════════════════════════
+             ABOUT
+             ══════════════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ABOUT"
+            style="@style/TextStyle.GarminLabel"
+            android:textColor="@color/garmin_green"
+            android:paddingVertical="8dp"
+            android:layout_marginTop="10dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_widget"
+            android:padding="14dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="VERSION"
+                    style="@style/TextStyle.GarminLabel" />
+
+                <TextView
+                    android:id="@+id/tvVersionName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="--"
+                    android:textSize="13sp"
+                    android:textColor="@color/garmin_gray_1"
+                    android:fontFamily="monospace" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvRideCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rides completed: 0"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_2"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnRateApp"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:text="@string/btn_rate_app"
+                style="@style/Widget.GarminButton.Primary" />
+
+        </LinearLayout>
+
+        <!-- Bottom padding -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="24dp" />
+
+    </LinearLayout>
+
+</ScrollView>

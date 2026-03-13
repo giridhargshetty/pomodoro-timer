@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude sensitive BLE log files from backup -->
+    <exclude domain="external-files" path="." />
+    <!-- Include user preferences -->
+    <include domain="sharedpref" path="wildtribe_prefs.xml" />
+</full-backup-content>

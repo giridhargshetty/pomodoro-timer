@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Wild Tribe Drive</string>
+    <string name="app_tagline">MotoRound Navigator</string>
+    <string name="notification_listener_label">Wild Tribe Notification Listener</string>
+
+    <!-- Accessibility Service -->
+    <string name="accessibility_service_description">Wild Tribe Drive reads navigation info from Google Maps (turn directions, distance, ETA) to send to your MotoRound handlebar display. No personal data is stored or transmitted. Only navigation screen text is read — nothing else.</string>
+    <string name="acc_service_label">Maps Navigation Reader</string>
+
+    <!-- Splash -->
+    <string name="loading">Loading…</string>
+
+    <!-- Bluetooth Scan Screen -->
+    <string name="title_device_scan">DEVICE SCAN</string>
+    <string name="title_bluetooth">Connect to MotoRound</string>
+    <string name="btn_scan">SCAN</string>
+    <string name="btn_go_to_dashboard">GO TO DASHBOARD</string>
+    <string name="btn_open_bt_settings">Open Bluetooth Settings</string>
+    <string name="scanning_hint">Scanning for devices nearby…</string>
+    <string name="no_devices_found">No devices found.\nEnsure MotoRound is powered on and nearby.</string>
+    <string name="status_scanning">SCANNING</string>
+    <string name="status_connected">CONNECTED</string>
+    <string name="status_connecting">CONNECTING</string>
+    <string name="status_disconnected">DISCONNECTED</string>
+    <string name="status_reconnecting">RECONNECTING</string>
+    <string name="bluetooth_off_title">Bluetooth is Off</string>
+    <string name="bluetooth_off_message">Please enable Bluetooth to connect to your MotoRound device.</string>
+    <string name="label_devices">Nearby Devices</string>
+    <string name="connect">CONNECT</string>
+    <string name="reconnecting">Reconnecting…</string>
+    <string name="last_connected_device">Last Device</string>
+    <string name="btn_enable_accessibility">Enable Maps Reading</string>
+
+    <!-- Accessibility Permission Dialog -->
+    <string name="acc_dialog_title">Enable Navigation Reading</string>
+    <string name="acc_dialog_message">Wild Tribe Drive uses Android\'s Accessibility Service to read navigation info from Google Maps — turn directions, distance, and ETA — so your MotoRound display stays updated while you ride.\n\n• Only reads Google Maps navigation screen text\n• Nothing is stored or shared\n• Works in background while Maps is open</string>
+    <string name="acc_dialog_btn_open">Open Accessibility Settings</string>
+    <string name="acc_dialog_btn_skip">Not Now</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Your display auto-updates from Google Maps</string>
+    <string name="onboarding_body">Enable Maps Reading so turn directions, distance, and ETA appear on your MotoRound the moment navigation starts.</string>
+    <string name="btn_enable_now">Enable Now</string>
+    <string name="btn_skip_now">Skip for Now</string>
+    <string name="dashboard_banner_acc">Enable Maps Reading for auto navigation</string>
+
+    <!-- Dashboard -->
+    <string name="title_dashboard">WILD TRIBE DRIVE</string>
+    <string name="nav_waiting">WAITING FOR MAPS</string>
+    <string name="nav_continue_straight">CONTINUE STRAIGHT</string>
+    <string name="nav_turn_left">TURN LEFT</string>
+    <string name="nav_turn_right">TURN RIGHT</string>
+    <string name="nav_uturn">MAKE U-TURN</string>
+    <string name="nav_arrive">ARRIVED</string>
+    <string name="label_speed">SPEED</string>
+    <string name="label_speed_limit">LIMIT</string>
+    <string name="label_eta">ETA</string>
+    <string name="label_remaining">REMAINING</string>
+    <string name="label_ride_time">RIDE TIME</string>
+    <string name="label_avg_speed">AVG SPEED</string>
+    <string name="label_distance">DISTANCE</string>
+    <string name="slow_down">SLOW DOWN</string>
+    <string name="label_settings">SETTINGS</string>
+    <string name="btn_disconnect">DISCONNECT</string>
+    <string name="btn_log">LOG</string>
+    <string name="speed_limit_unknown">--</string>
+
+    <!-- Settings -->
+    <string name="title_settings">Settings</string>
+    <string name="section_device">DEVICE</string>
+    <string name="section_tasker">TASKER</string>
+    <string name="section_units">UNITS</string>
+    <string name="section_warnings">WARNINGS</string>
+    <string name="section_accessibility">ACCESSIBILITY</string>
+    <string name="section_display">DISPLAY</string>
+    <string name="section_notifications">NOTIFICATIONS</string>
+    <string name="section_debug">DEBUG</string>
+    <string name="section_about">ABOUT</string>
+    <string name="label_saved_device">Saved Device</string>
+    <string name="no_device_saved">No device saved\nTap SCAN to connect a device</string>
+    <string name="btn_reconnect">RECONNECT</string>
+    <string name="btn_forget_device">FORGET DEVICE</string>
+    <string name="label_speed_unit">Speed Unit</string>
+    <string name="label_speed_warning">Speed Warning Limit</string>
+    <string name="label_vibrate_warning">Vibrate on Warning</string>
+    <string name="label_screen_timeout">Screen Timeout (Dashboard)</string>
+    <string name="label_notifications">Phone Notifications on Display</string>
+    <string name="btn_grant_notif_access">Grant Notification Access</string>
+    <string name="btn_export_logs">Export Ride Log</string>
+    <string name="btn_clear_logs">Clear Log</string>
+    <string name="btn_view_logs">View Log In-App</string>
+    <string name="label_acc_status">Maps Reading Status</string>
+    <string name="btn_enable_acc">Enable Accessibility Service</string>
+    <string name="btn_disable_acc">Disable Accessibility Service</string>
+    <string name="acc_status_active">Active — Google Maps monitored</string>
+    <string name="acc_status_inactive">Disabled — tap to enable</string>
+    <string name="forget_device_title">Forget Device?</string>
+    <string name="forget_device_message">This will disconnect and remove the saved MotoRound device. You will need to scan and reconnect manually.</string>
+    <string name="device_forgotten">Device forgotten</string>
+    <string name="forget">Forget</string>
+    <string name="cancel">Cancel</string>
+    <string name="rides_completed">Rides completed: %d</string>
+    <string name="label_version">Version</string>
+    <string name="label_ble_device">BLE Device</string>
+    <string name="label_compat">MotoRound v4 compatible</string>
+    <string name="btn_tasker_guide">Tasker Setup Guide</string>
+    <string name="btn_rate_app">Rate App</string>
+    <string name="screen_timeout_always_on">Always On</string>
+    <string name="screen_timeout_10_min">10 Minutes</string>
+    <string name="screen_timeout_system">System Default</string>
+
+    <!-- Permissions -->
+    <string name="permission_required_title">Bluetooth Permission Required</string>
+    <string name="permission_bluetooth_rationale">Wild Tribe Drive needs Bluetooth permission to connect to your MotoRound navigation device. Without this permission, the app cannot function.</string>
+    <string name="grant_permission">Grant Permission</string>
+
+    <!-- Review -->
+    <string name="review_title">Enjoying Wild Tribe Drive?</string>
+    <string name="review_message">Your feedback helps improve the ride for every rider.</string>
+    <string name="btn_rate">Rate App</string>
+    <string name="btn_later">Maybe Later</string>
+</resources>

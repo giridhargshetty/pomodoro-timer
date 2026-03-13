@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <!-- GIF boot animation (primary) -->
+    <ImageView
+        android:id="@+id/gifImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/app_name"
+        android:visibility="gone" />
+
+    <!-- FIX 1: Static Garmin-style fallback if GIF missing -->
+    <LinearLayout
+        android:id="@+id/fallbackLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="48dp"
+        android:visibility="visible">
+
+        <ImageView
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@drawable/ic_bluetooth_connected"
+            android:tint="@color/garmin_green"
+            android:contentDescription="@string/app_name" />
+
+        <!-- "WILD TRIBE DRIVE" in garmin_green -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WILD TRIBE DRIVE"
+            android:textSize="28sp"
+            android:textColor="@color/garmin_green"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.15"
+            android:layout_marginTop="24dp" />
+
+        <!-- Subtitle in garmin_gray_1 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MotoRound Navigator"
+            android:textSize="14sp"
+            android:textColor="@color/garmin_gray_1"
+            android:letterSpacing="0.08"
+            android:layout_marginTop="8dp" />
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminateTint="@color/garmin_green"
+            android:layout_marginTop="48dp" />
+
+    </LinearLayout>
+
+</FrameLayout>

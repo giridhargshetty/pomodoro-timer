@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/garmin_bg_primary">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- ─── Header ──────────────────────────────────────────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/garmin_bg_panel"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textSize="20sp"
+                android:textColor="@color/garmin_green"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/title_bluetooth"
+                android:textSize="13sp"
+                android:textColor="@color/garmin_gray_1"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+
+        <!-- ─── Accessibility Banner ──────────────────────────────────── -->
+        <LinearLayout
+            android:id="@+id/layoutAccBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/garmin_bg_elevated"
+            android:padding="12dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="◈  Enable Maps Reading for auto navigation"
+                android:textColor="@color/garmin_amber"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textAllCaps="true"
+                android:letterSpacing="0.05" />
+
+            <Button
+                android:id="@+id/btnEnableAccessibility"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="ENABLE"
+                style="@style/Widget.GarminButton.Primary"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+        <!-- ─── Bluetooth Off Warning ─────────────────────────────────── -->
+        <LinearLayout
+            android:id="@+id/layoutBluetoothOff"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#33FF3B30"
+            android:padding="12dp"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="⚠  Bluetooth is off. Enable Bluetooth to connect."
+                android:textColor="@color/garmin_red"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnOpenSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="ENABLE"
+                style="@style/Widget.GarminButton.Danger"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+        <!-- ─── Connection Status Bar ─────────────────────────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="10dp"
+            android:background="@color/garmin_bg_elevated">
+
+            <View
+                android:id="@+id/viewStatusDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@drawable/bg_status_pill"
+                android:backgroundTint="@color/ble_disconnected" />
+
+            <TextView
+                android:id="@+id/tvConnectionStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status_disconnected"
+                android:textColor="@color/garmin_gray_1"
+                android:textSize="13sp"
+                android:fontFamily="sans-serif-condensed"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+        <!-- ─── Scan Button ───────────────────────────────────────────── -->
+        <Button
+            android:id="@+id/btnScan"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/btn_scan"
+            style="@style/Widget.GarminButton.Primary"
+            android:layout_margin="16dp" />
+
+        <!-- ─── Progress ──────────────────────────────────────────────── -->
+        <ProgressBar
+            android:id="@+id/progressScan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:indeterminateTint="@color/garmin_green"
+            android:visibility="gone" />
+
+        <!-- ─── Device List Label ──────────────────────────────────────── -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/label_devices"
+            android:textColor="@color/garmin_green"
+            android:textSize="10sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.12"
+            android:fontFamily="sans-serif-condensed"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp" />
+
+        <!-- ─── Empty State ───────────────────────────────────────────── -->
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/no_devices_found"
+            android:textColor="@color/garmin_gray_2"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:padding="32dp"
+            android:lineSpacingMultiplier="1.4"
+            android:visibility="visible" />
+
+        <!-- ─── Device List ────────────────────────────────────────────── -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDevices"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingHorizontal="8dp"
+            android:clipToPadding="false" />
+
+        <!-- ─── Go to Dashboard Button ─────────────────────────────────── -->
+        <Button
+            android:id="@+id/btnGoToDashboard"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/btn_go_to_dashboard"
+            style="@style/Widget.GarminButton.Primary"
+            android:layout_margin="16dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

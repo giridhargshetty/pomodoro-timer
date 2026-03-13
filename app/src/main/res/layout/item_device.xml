@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_widget"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="4dp"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Device Name -->
+        <TextView
+            android:id="@+id/tvDeviceName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="15sp"
+            android:textColor="@color/garmin_white"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-condensed"
+            android:ellipsize="end"
+            android:maxLines="1" />
+
+        <!-- MotoRound badge (visible for highlighted devices) -->
+        <TextView
+            android:id="@+id/motoroundBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MotoRound"
+            android:textSize="10sp"
+            android:textColor="@color/garmin_bg_primary"
+            android:background="@color/garmin_green"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="4dp">
+
+        <!-- Device MAC Address -->
+        <TextView
+            android:id="@+id/tvDeviceAddress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="11sp"
+            android:textColor="@color/garmin_gray_1"
+            android:fontFamily="monospace" />
+
+        <!-- RSSI value -->
+        <TextView
+            android:id="@+id/tvDeviceRssi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:textColor="@color/garmin_green"
+            android:textStyle="bold"
+            android:fontFamily="monospace" />
+
+    </LinearLayout>
+
+    <!-- Signal strength label -->
+    <TextView
+        android:id="@+id/tvSignalStrength"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:textColor="@color/garmin_gray_2"
+        android:layout_marginTop="2dp" />
+
+    <!-- Connect button -->
+    <Button
+        android:id="@+id/btnConnect"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="@string/connect"
+        style="@style/Widget.GarminButton.Primary"
+        android:textSize="13sp"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

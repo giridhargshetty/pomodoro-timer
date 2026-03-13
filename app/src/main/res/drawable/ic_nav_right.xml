@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="72dp"
+    android:height="72dp"
+    android:viewportWidth="72"
+    android:viewportHeight="72">
+    <!-- Vertical stem going up then bending right -->
+    <path
+        android:pathData="M 22,56 L 22,24 L 38,24"
+        android:strokeColor="@color/nav_right"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+    <!-- Arrowhead pointing right -->
+    <path
+        android:pathData="M 30,16 L 46,24 L 30,32"
+        android:strokeColor="@color/nav_right"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+</vector>
